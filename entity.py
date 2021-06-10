@@ -6,9 +6,7 @@ import os
 class entity:
 
     # entity constructor
-    def __init__(self, x: int, y: int, width: int, height: int, imagePath: str):
-        self.x = x
-        self.y = y
+    def __init__(self,width: int, height: int, imagePath: str):
         self.width = width
         self.height = height
         self.imagePath = imagePath
@@ -17,3 +15,5 @@ class entity:
 
     def load_image(self):
         return pygame.image.load(os.path.join((config.assets, self.imagePath)))
+
+        

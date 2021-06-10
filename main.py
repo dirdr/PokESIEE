@@ -4,13 +4,13 @@ from game import Game
 pygame.init()
 
 # screen
-screen = pygame.display.set_mode(config.SCREEN_WIDTH, config.SCREEN_HEIGHT)
+screen = pygame.display.set_mode((config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
 pygame.display.set_caption("PokESIEE")
 
 
 # create a new instance of game
 gm = Game(screen)
-
+clock = pygame.time.Clock()
 
 done = False
 
@@ -23,3 +23,10 @@ while not done:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
+
+    gm.update()
+    clock.tick(30)
+    pygame.display.flip()
+
+
+pygame.quit()

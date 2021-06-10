@@ -25,6 +25,7 @@ while not done:
             done = True
 
     gm.update()
+    gm.draw()
     clock.tick(30)
     pygame.display.flip()
 

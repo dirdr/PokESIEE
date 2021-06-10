@@ -3,7 +3,7 @@ import config
 import os
 
 
-class entity:
+class Entity:
 
     # entity constructor
     def __init__(self,width: int, height: int, imagePath: str):
@@ -16,4 +16,5 @@ class entity:
     def load_image(self):
         return pygame.image.load(os.path.join((config.assets, self.imagePath)))
 
-        
+
+    

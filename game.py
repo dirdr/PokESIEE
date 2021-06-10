@@ -1,4 +1,6 @@
+from entity import Entity
 from player import Player
+from entity import Entity
 
 
 class Game:
@@ -7,6 +9,7 @@ class Game:
         self.screen = screen
         # array of all the map objects
         self.mapObjects = []
+        self.bakground = Entity()
 
     # load class method
     def load(self):
@@ -15,8 +18,12 @@ class Game:
 
     # update class method
     def update(self):
-        pass
+        self.bakground.update()
+        for map_objects in self.mapObjects:
+            map_objects.update()
 
     # draw class method
     def draw(self):
-        pass
+        self.bakground.draw(self.screeen)
+        for map_objects in self.mapObjects:
+            map_objects.draw(self.screen)

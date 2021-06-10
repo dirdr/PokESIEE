@@ -4,9 +4,9 @@ class Game:
         self.screen = screen
 
     # General update function
-    def update():
+    def update(self):
         pass
 
     # General draw function
-    def draw():
+    def draw(self):
         pass

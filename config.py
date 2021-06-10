@@ -11,5 +11,5 @@ scriptDIR = os.path.dirname(scriptPATH)
 assets = os.path.join(scriptDIR, "data")
 
 # Player constant
-PLAYER_VELOCITY = 3
+PLAYER_VELOCITY = 2
 

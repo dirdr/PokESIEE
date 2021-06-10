@@ -13,6 +13,7 @@ class Player(Entity):
         self.y = y
         self.animation = {}
         self.direction = {}
+        self.running = False
         self.load()
         self.current_sprite = self.animation['MoveDown'][0]
 
@@ -66,7 +67,13 @@ class Player(Entity):
 
         keys_pressed = pygame.key.get_pressed()
         self.clear_direction()
-        
+
+        if keys_pressed[pygame.K_n]:
+            self.running = True
+        else:
+            self.running = False
+
+
         if keys_pressed[pygame.K_UP]:
             self.y -= config.PLAYER_VELOCITY
             self.direction['UP'] = True
@@ -87,7 +94,14 @@ class Player(Entity):
             self.direction['NONE'] = True
 
     def select_sprite(self) -> None:
-        time = int(pygame.time.get_ticks() / 100)
+
+        if self.running:
+            time = int(pygame.time.get_ticks() / 100)
+            config.PLAYER_VELOCITY = 4
+        else:
+            time = int(pygame.time.get_ticks() / 200)
+            config.PLAYER_VELOCITY = 2
+
         if self.direction['UP']:
             self.current_sprite = self.animation['MoveUp'][time % len(self.animation['MoveUp'])]
         if self.direction['DOWN']:

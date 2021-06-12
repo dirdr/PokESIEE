@@ -1,15 +1,32 @@
 import os
 import inspect
 # screen
-SCREEN_HEIGHT = 400
-SCREEN_WIDTH = 800
-
+SCREEN_WIDTH = 480
+SCREEN_HEIGHT = 320
 # assets
 scriptPATH = os.path.abspath(inspect.getsourcefile(
     lambda: 0))  # compatible interactive Python Shell
 scriptDIR = os.path.dirname(scriptPATH)
 assets = os.path.join(scriptDIR, "data")
+map_assets = os.path.join(scriptDIR, "map")
 
 # Player constant
-PLAYER_VELOCITY = 2
+PLAYER_VELOCITY = 1
+
+PLAYER_MAX_HEIGHT = 22
+PLAYER_MAX_WIDTH = 15
+PLAYER_SCALED_HEIGHT = 2*PLAYER_MAX_HEIGHT
+PLAYED_SCALED_WIDTH = 2*PLAYER_MAX_WIDTH
+
+TILE_SIZE_SCALED = 32
+
+# Map
+
+MAP_WIDTH = 640
+MAP_HEIGHT = 960
+
+
+#color
+BLACK = (0, 0, 0)
+
 

@@ -1,30 +1,44 @@
 import pygame
 
+import config
+from draw_area import DrawArea
 from player import Player
 from entity import Entity
+from game_map import GameMap
 
 
 class Game:
 
     # game constructor
-    def __init__(self, screen):
+    def __init__(self, screen) -> None:
         self.screen = screen
-        # array of all the map objects
-        self.mapObjects = []
-        self.background = Entity(636, 641, "fond_temp.png")
+        # create the area that gonna be drawn
+        self.draw_area = DrawArea(0, 0, config.SCREEN_WIDTH, config.SCREEN_HEIGHT)
+        # dictionary containing all the gameMap
+        self.map = {'FirstMap': GameMap(160, 144, "interieur_test.png")}
+        self.currentMap = self.map['FirstMap']
+        self.load()
 
     # load class method
     def load(self) -> None:
-        player = Player(300, 200)
-        self.mapObjects.append(player)
+        player = Player(config.SCREEN_WIDTH / 2 - config.PLAYED_SCALED_WIDTH / 2,
+                        config.SCREEN_HEIGHT / 2 - config.PLAYER_SCALED_HEIGHT / 2, self.draw_area, self.currentMap)
+        self.map['FirstMap'].load_map()
+        self.map['FirstMap'].map_objects.append(player)
 
     # update class method
     def update(self) -> None:
-        for map_objects in self.mapObjects:
+        for map_objects in self.currentMap.map_objects:
             map_objects.update()
 
     # draw class method
     def draw(self) -> None:
-        self.screen.blit(pygame.transform.scale(self.background.image, (500, 500)) , (0, 0))
-        for map_objects in self.mapObjects:
-            map_objects.draw(self.screen)
+        self.screen.fill((0, 0, 0))
+        self.currentMap.draw(self.screen, self.draw_area)
+        for map_object in self.map['FirstMap'].map_objects:
+            map_object.draw(self.screen)
+
+    # take a map coordinate as a parameter and return the screen coordinate
+    def convert_coordinate_map_to_screen(self, coordinate: tuple) -> tuple:
+        returnable = (coordinate[0] - self.draw_area.x, coordinate[1] - self.draw_area.y)
+        return returnable

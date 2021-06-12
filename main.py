@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
         gm.update()
         gm.draw()
-        clock.tick(30)
+        clock.tick(60)
         pygame.display.flip()
 
     pygame.quit()

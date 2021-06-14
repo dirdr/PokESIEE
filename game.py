@@ -13,7 +13,7 @@ class Game:
     def __init__(self, screen) -> None:
         self.screen = screen
         # create the area that gonna be drawn
-        self.draw_area = DrawArea(0, 0, config.SCREEN_WIDTH, config.SCREEN_HEIGHT)
+        self.draw_area = DrawArea(-50, -10, config.SCREEN_WIDTH, config.SCREEN_HEIGHT)
         # dictionary containing all the gameMap
         self.map = {'FirstMap': GameMap(160, 144, "interieur_test.png")}
         self.currentMap = self.map['FirstMap']
@@ -21,8 +21,7 @@ class Game:
 
     # load class method
     def load(self) -> None:
-        player = Player(config.SCREEN_WIDTH / 2 - config.PLAYED_SCALED_WIDTH / 2,
-                        config.SCREEN_HEIGHT / 2 - config.PLAYER_SCALED_HEIGHT / 2, self.draw_area, self.currentMap)
+        player = Player(self.draw_area, self.currentMap)
         self.map['FirstMap'].load_map()
         self.map['FirstMap'].map_objects.append(player)
 

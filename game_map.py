@@ -22,13 +22,15 @@ def debug_draw_grid(screen):
 class GameMap(Entity):
 
     # game_map constructor
-    def __init__(self, width: int, height: int, image_path: str):
+    def __init__(self, width: int, height: int, image_path: str, collision_path: str):
         super(GameMap, self).__init__(width, height, image_path)
         self.tile_size = config.TILE_SIZE_SCALED
         self.number_of_tiles_width = int(2*self.width/self.tile_size)
         self.number_of_tiles_height = int(2*self.height/self.tile_size)
         self.map_objects = []
         self.map_grid = []
+        self.character_list = []
+        self.collision_path = collision_path
 
     # draw the game_map
     def draw(self, screen, draw_area) -> None:
@@ -37,7 +39,7 @@ class GameMap(Entity):
     # Load the map file into the field map_grid
 
     def load_map(self) -> None:
-        with open(os.path.join(config.map_assets, "interieur_test_collision.txt")) as f:
+        with open(os.path.join(config.map_assets, self.collision_path)) as f:
             line_array = f.read().splitlines()
             f.close()
         for line in line_array:

@@ -1,4 +1,3 @@
-
 import pygame
 from entity import Entity
 import spritesheet
@@ -6,6 +5,9 @@ import config
 from draw_area import DrawArea
 from game_map import GameMap
 import numpy
+from direction import Directions as dir
+import direction
+from assets import PlayerAnimations
 
 
 class Player(Entity):
@@ -13,312 +15,219 @@ class Player(Entity):
     # constructor
     def __init__(self, area: DrawArea, game_map: GameMap) -> None:
         super(Player, self).__init__(10, 10, 'player_spritesheet.png')
-
         # player screen position
         self.y_screen = config.SCREEN_HEIGHT / 2 - config.PLAYER_SCALED_HEIGHT / 2
         self.x_screen = config.SCREEN_WIDTH / 2 - config.PLAYER_SCALED_WIDTH / 2
-
         # player current logical tile
         self.current_tile_x = 5
         self.current_tile_y = 6
-
         # player logical position
         self.x_logical_decor = self.current_tile_x * config.TILE_SIZE_SCALED
         self.y_logical_decor = self.current_tile_y * config.TILE_SIZE_SCALED + config.PLAYER_OFFSET_FOOT
-
         # render x and y coordinates (smooth animation)
         self.x_render = self.x_logical_decor
         self.y_render = self.y_logical_decor
-
         # animation coordinates from source to destination
         self.src_x = self.x_logical_decor
         self.src_y = self.y_logical_decor
         self.dest_x = self.x_logical_decor
         self.dest_y = self.y_logical_decor
-
         # animation timer
         self.animation_timer = 0
-        self.ANIMATION_TIME = 0.25
-
         # ref variables
         self.area = area
         self.game_map = game_map
-
-        # configuration de la zone d'affichage
-
+        # screen blit coordinates configuration
         self.area.x = self.x_render - self.x_screen
         self.area.y = self.y_render - self.y_screen
 
+
         # misc
-        self.animation = {}
-        self.direction = ''
-        self.last_direction = ''
+        self.animation = PlayerAnimations(self.image)
+
+        # direction
+
+        self.directionPressed = {direction.Directions.NORTH: False, direction.Directions.SOUTH: False,
+                                 direction.Directions.EAST: False, direction.Directions.WEST: False}
+
+        self.directionPressedTimer = {direction.Directions.NORTH: 0, direction.Directions.SOUTH: 0,
+                                      direction.Directions.EAST: 0, direction.Directions.WEST: 0}
+
+        # at the game start, the player is facing down
+        self.facing = direction.Directions.SOUTH
+
         self.state = config.PLAYER_STATE_IDLE
-        self.load()
-        self.current_sprite = self.animation['MoveDownWalk'][0]
+        self.current_mode = config.PLAYER_MODE_WALK
+        self.next_mode = config.PLAYER_MODE_WALK
 
-        self.REFACE_TIME = 0.1
-        self.facing_timer = self.REFACE_TIME
-        self.facing_dir = 'DOWN'
+        # Number of second the tile crossing animation is gonna be
+        self.time_per_tile_walking = float(0.4)
+        self.time_per_tile_running = float(0.15)
+        self.time_per_tile_biking = float(0.10)
 
-        self.running = False
-        self.clock = pygame.time.Clock()
-        self.dt = 0
-        self.walk_cool_down = 0
-        self.walk_delay = 0.25
-        self.time = self.time = int(pygame.time.get_ticks() / 170)
+        self.time_per_tile = self.time_per_tile_walking
+        self.cool_down = config.COOL_DOWN_WALKING
+        self.request_move_frame = True
 
-    def load_animation(self) -> None:
-        # those array store the player animation
-        width = 15
-        y_temp = 0
+    # initialize all the move variables
 
-        self.animation['MoveUpRun'] = []
-        self.animation['MoveUpWalk'] = []
-
-        self.animation['MoveDownWalk'] = []
-        self.animation['MoveDownRun'] = []
-
-        self.animation['MoveLeftWalk'] = []
-        self.animation['MoveLeftRun'] = []
-
-        self.animation['MoveRightWalk'] = []
-        self.animation['MoveRightRun'] = []
-
-        height_tab = [22, 22, 22, 20, 20, 21]
-        for i in range(0, 3):
-            self.animation['MoveDownWalk'].append(spritesheet.pick_image(self.image, 0, y_temp, width, height_tab[i]))
-            y_temp += height_tab[i]
-
-        for i in range(3, 6):
-            self.animation['MoveDownRun'].append(spritesheet.pick_image(self.image, 0, y_temp, width, height_tab[i]))
-            y_temp += height_tab[i]
-
-        y_temp = 0
-        for i in range(0, 3):
-            self.animation['MoveUpWalk'].append(spritesheet.pick_image(self.image, 15, y_temp, width, height_tab[i]))
-            y_temp += height_tab[i]
-        for i in range(3, 6):
-            self.animation['MoveUpRun'].append(spritesheet.pick_image(self.image, 15, y_temp, width, height_tab[i]))
-            y_temp += height_tab[i]
-
-        y_temp = 0
-
-        height_tab = [22, 22, 21, 21, 21, 20]
-
-        for i in range(0, 3):
-            image = spritesheet.pick_image(self.image, 30, y_temp, width, height_tab[i])
-            self.animation['MoveLeftWalk'].append(image)
-            self.animation['MoveRightWalk'].append(pygame.transform.flip(image, True, False))
-            y_temp += height_tab[i]
-
-        for i in range(3, 6):
-            image = spritesheet.pick_image(self.image, 30, y_temp, width, height_tab[i])
-            self.animation['MoveLeftRun'].append(image)
-            self.animation['MoveRightRun'].append(pygame.transform.flip(image, True, False))
-            y_temp += height_tab[i]
-
-    def initialize_move(self, old_x: int, old_y: int, dest_x: int, dest_y: int) -> None:
-
-        self.src_x = old_x
-        self.src_y = old_y
-        self.dest_x = old_x + dest_x
-        self.dest_y = old_y + dest_y
-        self.x_render = old_x
-        self.y_render = old_y
+    def initialize_move(self, mov_dir: direction.Direction) -> None:
+        self.facing = mov_dir
+        self.src_x = self.x_logical_decor
+        self.src_y = self.y_logical_decor
+        self.dest_x = self.x_logical_decor + mov_dir.dx * config.TILE_SIZE_SCALED
+        self.dest_y = self.y_logical_decor + mov_dir.dy * config.TILE_SIZE_SCALED
+        self.x_render = self.x_logical_decor
+        self.y_render = self.y_logical_decor
         self.animation_timer = 0
         self.state = config.PLAYER_STATE_MOVING
+        self.current_mode = self.next_mode
 
-
+    # finish the animation and reset all the move variables
     def finish_move(self):
         self.state = config.PLAYER_STATE_IDLE
+        self.x_logical_decor = self.dest_x
+        self.y_logical_decor = self.dest_y
+        self.src_x = 0
+        self.src_y = 0
+        self.dest_x = 0
+        self.dest_y = 0
 
-    # update class method
-    def update(self) -> None:
-        self.clock_update()
-        self.handle_key()
-        self.update_position()
-        self.select_sprite()
+    def update(self):
+        self.update_control(config.dt)
+        self.update_movement(config.dt)
+        self.update_coordinates()
 
-    def clock_update(self):
-        self.dt = self.clock.tick() / 1000
+    def update_control(self, dt: float):
 
-    def update_position(self):
+        if self.directionPressed[dir.NORTH]:
+            self.update_direction(direction.Directions.NORTH, dt)
+            return
+        if self.directionPressed[dir.SOUTH]:
+            self.update_direction(direction.Directions.SOUTH, dt)
+            return
+        if self.directionPressed[dir.EAST]:
+            self.update_direction(direction.Directions.EAST, dt)
+            return
+        if self.directionPressed[dir.WEST]:
+            self.update_direction(direction.Directions.WEST, dt)
+            return
+
+    def release_direction(self, mov_dir) -> None:
+        self.directionPressed[mov_dir] = False
+        self.consider_reface(mov_dir)
+        self.directionPressedTimer[mov_dir] = 0
+
+    def update_direction(self, mov_dir: direction.Direction, dt: float) -> None:
+        self.directionPressedTimer[mov_dir] += dt
+        self.consider_movement(mov_dir)
+
+    def consider_movement(self, mov_dir: direction.Direction) -> None:
+        if self.directionPressedTimer[mov_dir] > config.PLAYER_REFACE_TIMING:
+            self.move(mov_dir)
+
+    def consider_reface(self, mov_dir: direction.Direction) -> None:
+        if self.directionPressedTimer[mov_dir] < config.PLAYER_REFACE_TIMING:
+            self.reface(mov_dir)
+
+    # player refacing
+    def reface(self, mov_dir) -> bool:
+        # cannot refacing if not IDLE
+        if not self.state == config.PLAYER_STATE_IDLE:
+            return False
+        # can't reface in the player current direction
+        if self.facing == mov_dir:
+            return True
+        # reface
+        self.facing = mov_dir
+        self.state = config.PLAYER_STATE_REFACING
+        self.animation_timer = 0
+        return True
+
+    def move(self, mov_dir: direction.Direction) -> bool:
         if self.state == config.PLAYER_STATE_MOVING:
-            self.animation_timer += self.dt
-            alpha = self.animation_timer / self.ANIMATION_TIME
+            if self.facing == mov_dir:
+                self.request_move_frame = True
+            return False
+
+        if self.gonna_be_oob(mov_dir):
+            self.reface(mov_dir)
+            return False
+        if not self.can_go_next_tile(mov_dir):
+            self.reface(mov_dir)
+            return False
+
+        self.initialize_move(mov_dir)
+        self.current_tile_x += mov_dir.dx
+        self.current_tile_y += mov_dir.dy
+
+    def gonna_be_oob(self, mov_dir: direction.Direction) -> bool:
+
+        map_limit_width = int(self.game_map.width/16)
+        map_limit_height = int(self.game_map.height/16)
+        tile_to_look_x = self.current_tile_x + mov_dir.dx
+        tile_to_look_y = self.current_tile_y + mov_dir.dy + 1
+
+        if tile_to_look_x >= map_limit_width or tile_to_look_x < 0:
+            return True
+        elif tile_to_look_y >= map_limit_height or tile_to_look_y < 0:
+            return True
+        else:
+            return False
+
+    def can_go_next_tile(self, mov_dir: direction.Direction) -> bool:
+        tile_to_look_x = self.current_tile_x + mov_dir.dx
+        tile_to_look_y = self.current_tile_y + 1 + mov_dir.dy
+        if self.game_map.map_grid[tile_to_look_y][tile_to_look_x] == 'c':
+            return False
+        else:
+            return True
+
+    def update_coordinates(self):
+        self.area.x = self.x_render - self.x_screen
+        self.area.y = self.y_render - self.y_screen
+
+    # Player update function
+    def update_movement(self, dt):
+
+        if self.state == config.PLAYER_STATE_MOVING:
+
+            self.animation_timer += dt
+
+            if self.current_mode == config.PLAYER_MODE_WALK:
+                time_per_tile = config.PLAYER_TIME_PER_TILE_WALKING
+            elif self.current_mode == config.PLAYER_MODE_RUN:
+                time_per_tile = config.PLAYER_TIME_PER_TILE_RUNNING
+            else:
+                time_per_tile = config.PLAYER_TIME_PER_TILE_BIKING
+            alpha = self.animation_timer / time_per_tile
             xp = [0, 1]
             fpx = [self.src_x, self.dest_x]
             fpy = [self.src_y, self.dest_y]
-            self.x_logical_decor = self.current_tile_x * config.TILE_SIZE_SCALED
-            self.y_logical_decor = self.current_tile_y * config.TILE_SIZE_SCALED + config.PLAYER_OFFSET_FOOT
             self.x_render = numpy.interp(alpha, xp, fpx)
             self.y_render = numpy.interp(alpha, xp, fpy)
-            self.area.x = self.x_render - self.x_screen
-            self.area.y = self.y_render - self.y_screen
-            if self.animation_timer > self.ANIMATION_TIME:
-                self.state = config.PLAYER_STATE_IDLE
+            if self.animation_timer >= time_per_tile:
+                self.finish_move()
 
-    # Global load function
-    def load(self) -> None:
-        self.load_animation()
+    def select_sprite(self) -> pygame.Surface:
 
-    def go_up(self) -> None:
+        if self.current_mode == config.PLAYER_MODE_WALK:
 
-        self.current_tile_y -= 1
-        self.initialize_move(self.x_logical_decor, self.y_logical_decor, 0,
-                             -32)
+            time = int(pygame.time.get_ticks()/170)
 
-    def go_down(self) -> None:
-
-        self.current_tile_y += 1
-        self.initialize_move(self.x_logical_decor, self.y_logical_decor, 0,
-                             32)
-
-    def go_right(self) -> None:
-
-        self.current_tile_x += 1
-        self.initialize_move(self.x_logical_decor, self.y_logical_decor, 32,
-                             0)
-
-    def go_left(self) -> None:
-
-        self.current_tile_x -= 1
-        self.initialize_move(self.x_logical_decor, self.y_logical_decor, -32,
-                             0)
-
-    def check_can_go_right(self) -> bool:
-        map_limit = int(self.game_map.width/16)
-        x_tile_to_look = self.current_tile_x + 1
-        y_tile_to_look = self.current_tile_y + 1
-        print(self.current_tile_y)
-        if x_tile_to_look >= map_limit:
-            return False
-        else:
-            if self.game_map.map_grid[y_tile_to_look][x_tile_to_look] == 'c':
-                return False
+            if self.state == config.PLAYER_STATE_MOVING:
+                return self.animation.walking[self.facing][time % len(self.animation.walking[self.facing])]
             else:
-                return True
+                return self.animation.walking[self.facing][0]
 
-    def check_can_go_down(self) -> bool:
-        map_limit = int(self.game_map.height/16)
-        y_tile_to_look = self.current_tile_y + 2
-        if y_tile_to_look >= map_limit:
-            return False
-        else:
-            if self.game_map.map_grid[y_tile_to_look][self.current_tile_x] == 'c':
-                return False
+        elif self.current_mode == config.PLAYER_MODE_RUN:
+
+            time = int(pygame.time.get_ticks()/120)
+            if self.state == config.PLAYER_STATE_MOVING:
+                return self.animation.running[self.facing][time % len(self.animation.running[self.facing])]
             else:
-                return True
-
-    def check_can_go_up(self) -> bool:
-        map_limit = 0
-        y_tile_to_look = self.current_tile_y
-        if y_tile_to_look <= map_limit - 1:
-            return False
-        else:
-            if self.game_map.map_grid[y_tile_to_look][self.current_tile_x] == 'c':
-                return False
-            else:
-                return True
-
-    def check_can_go_left(self) -> bool:
-        map_limit = -1
-        x_tile_to_look = self.current_tile_x - 1
-        y_tile_to_look = self.current_tile_y + 1
-        if x_tile_to_look <= map_limit:
-            return False
-        else:
-            if self.game_map.map_grid[y_tile_to_look][x_tile_to_look] == 'c':
-                return False
-            else:
-                return True
-
-    def handle_key(self) -> None:
-
-        keys_pressed = pygame.key.get_pressed()
-
-        if keys_pressed[pygame.K_n]:
-            self.running = True
-        else:
-            self.running = False
-
-        self.last_direction = self.direction
-        self.walk_cool_down -= self.dt
-
-        if self.walk_cool_down <= 0:
-
-            if keys_pressed[pygame.K_UP]:
-                self.direction = 'UP'
-                if self.check_can_go_up():
-                    self.go_up()
-                    self.walk_cool_down = self.walk_delay
-
-            elif keys_pressed[pygame.K_DOWN]:
-                self.direction = 'DOWN'
-                if self.check_can_go_down():
-                    self.go_down()
-                    self.walk_cool_down = self.walk_delay
-
-            elif keys_pressed[pygame.K_LEFT]:
-                self.direction = 'LEFT'
-                if self.check_can_go_left():
-                    self.go_left()
-                    self.walk_cool_down = self.walk_delay
-
-            elif keys_pressed[pygame.K_RIGHT]:
-                self.direction = 'RIGHT'
-                if self.check_can_go_right():
-                    self.go_right()
-                    self.walk_cool_down = self.walk_delay
-            else:
-                self.direction = 'NONE'
-
-    def select_sprite(self) -> None:
-
-        if self.running:
-            self.time = int(pygame.time.get_ticks() / 100)
-        else:
-            self.time = int(pygame.time.get_ticks() / 170)
-
-        if self.direction == 'UP':
-            if self.running:
-                self.current_sprite = self.animation['MoveUpRun'][self.time % len(self.animation['MoveUpRun'])]
-            else:
-                self.current_sprite = self.animation['MoveUpWalk'][self.time % len(self.animation['MoveUpWalk'])]
-
-        if self.direction == 'DOWN':
-            if self.running:
-                self.current_sprite = self.animation['MoveDownRun'][self.time % len(self.animation['MoveDownRun'])]
-            else:
-                self.current_sprite = self.animation['MoveDownWalk'][self.time % len(self.animation['MoveDownWalk'])]
-
-        if self.direction == 'RIGHT':
-            if self.running:
-                self.current_sprite = self.animation['MoveRightRun'][self.time % len(self.animation['MoveRightRun'])]
-            else:
-                self.current_sprite = self.animation['MoveRightWalk'][self.time % len(self.animation['MoveRightWalk'])]
-        if self.direction == 'LEFT':
-            if self.running:
-                self.current_sprite = self.animation['MoveLeftRun'][self.time % len(self.animation['MoveLeftRun'])]
-            else:
-                self.current_sprite = self.animation['MoveLeftWalk'][self.time % len(self.animation['MoveLeftWalk'])]
-
-        if self.direction == 'NONE':
-            if self.last_direction == 'RIGHT':
-                self.current_sprite = self.animation['MoveRightWalk'][0]
-            if self.last_direction == 'LEFT':
-                self.current_sprite = self.animation['MoveLeftWalk'][0]
-            if self.last_direction == 'UP':
-                self.current_sprite = self.animation['MoveUpWalk'][0]
-            if self.last_direction == 'DOWN':
-                self.current_sprite = self.animation['MoveDownWalk'][0]
+                return self.animation.running[self.facing][0]
 
     # draw class method
-    def draw(self, screen):
-        hit_box = (self.x_screen, self.y_screen, config.PLAYER_SCALED_WIDTH, config.PLAYER_SCALED_HEIGHT)
-        x_coordinate = (self.x_screen, self.y_screen, config.PLAYER_SCALED_WIDTH, config.PLAYER_SCALED_HEIGHT)
-        screen_middle = (config.SCREEN_WIDTH / 2, config.SCREEN_HEIGHT / 2, 1, 1)
-        screen.blit(pygame.transform.scale2x(self.current_sprite), (self.x_screen, self.y_screen))
-        #pygame.draw.rect(screen, (255, 0, 0), hit_box)
-        # pygame.draw.rect(screen, (250, 250, 0), screen_middle)
+    def draw(self, screen) -> None:
+        screen.blit(self.select_sprite(), (self.x_screen, self.y_screen))

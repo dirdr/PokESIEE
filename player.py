@@ -9,7 +9,6 @@ from direction import Directions as dir
 import direction
 from assets import PlayerAnimations
 
-
 class Player(Entity):
 
     # constructor
@@ -19,7 +18,7 @@ class Player(Entity):
         self.y_screen = config.SCREEN_HEIGHT / 2 - config.PLAYER_SCALED_HEIGHT / 2
         self.x_screen = config.SCREEN_WIDTH / 2 - config.PLAYER_SCALED_WIDTH / 2
         # player current logical tile
-        self.current_tile_x = 5
+        self.current_tile_x = 7
         self.current_tile_y = 6
         # player logical position
         self.x_logical_decor = self.current_tile_x * config.TILE_SIZE_SCALED
@@ -42,7 +41,6 @@ class Player(Entity):
         self.area.y = self.y_render - self.y_screen
 
 
-        # misc
         self.animation = PlayerAnimations(self.image)
 
         # direction
@@ -55,17 +53,9 @@ class Player(Entity):
 
         # at the game start, the player is facing down
         self.facing = direction.Directions.SOUTH
-
         self.state = config.PLAYER_STATE_IDLE
         self.current_mode = config.PLAYER_MODE_WALK
         self.next_mode = config.PLAYER_MODE_WALK
-
-        # Number of second the tile crossing animation is gonna be
-        self.time_per_tile_walking = float(0.4)
-        self.time_per_tile_running = float(0.15)
-        self.time_per_tile_biking = float(0.10)
-
-        self.time_per_tile = self.time_per_tile_walking
         self.cool_down = config.COOL_DOWN_WALKING
         self.request_move_frame = True
 
@@ -180,6 +170,9 @@ class Player(Entity):
         tile_to_look_y = self.current_tile_y + 1 + mov_dir.dy
         if self.game_map.map_grid[tile_to_look_y][tile_to_look_x] == 'c':
             return False
+        elif self.game_map.map_grid[tile_to_look_y][tile_to_look_x] == 'g':
+            self.game_map.handle_grass_event()
+            return True
         else:
             return True
 
@@ -226,7 +219,7 @@ class Player(Entity):
             if self.state == config.PLAYER_STATE_MOVING:
                 return self.animation.running[self.facing][time % len(self.animation.running[self.facing])]
             else:
-                return self.animation.running[self.facing][0]
+                return self.animation.walking[self.facing][0]
 
     # draw class method
     def draw(self, screen) -> None:

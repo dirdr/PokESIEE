@@ -11,4 +11,3 @@ class DrawArea:
     def update_rect(self) -> tuple[int, int, int, int]:
         rect = (self.x, self.y, self.width, self.height)
         return rect
-

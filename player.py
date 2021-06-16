@@ -1,6 +1,5 @@
 import pygame
 from entity import Entity
-import spritesheet
 import config
 from draw_area import DrawArea
 from game_map import GameMap
@@ -8,6 +7,7 @@ import numpy
 from direction import Directions as dir
 import direction
 from assets import PlayerAnimations
+
 
 class Player(Entity):
 
@@ -39,7 +39,6 @@ class Player(Entity):
         # screen blit coordinates configuration
         self.area.x = self.x_render - self.x_screen
         self.area.y = self.y_render - self.y_screen
-
 
         self.animation = PlayerAnimations(self.image)
 
@@ -153,8 +152,8 @@ class Player(Entity):
 
     def gonna_be_oob(self, mov_dir: direction.Direction) -> bool:
 
-        map_limit_width = int(self.game_map.width/16)
-        map_limit_height = int(self.game_map.height/16)
+        map_limit_width = int(self.game_map.width / 16)
+        map_limit_height = int(self.game_map.height / 16)
         tile_to_look_x = self.current_tile_x + mov_dir.dx
         tile_to_look_y = self.current_tile_y + mov_dir.dy + 1
 
@@ -206,7 +205,7 @@ class Player(Entity):
 
         if self.current_mode == config.PLAYER_MODE_WALK:
 
-            time = int(pygame.time.get_ticks()/170)
+            time = int(pygame.time.get_ticks() / 170)
 
             if self.state == config.PLAYER_STATE_MOVING:
                 return self.animation.walking[self.facing][time % len(self.animation.walking[self.facing])]
@@ -215,7 +214,7 @@ class Player(Entity):
 
         elif self.current_mode == config.PLAYER_MODE_RUN:
 
-            time = int(pygame.time.get_ticks()/120)
+            time = int(pygame.time.get_ticks() / 120)
             if self.state == config.PLAYER_STATE_MOVING:
                 return self.animation.running[self.facing][time % len(self.animation.running[self.facing])]
             else:

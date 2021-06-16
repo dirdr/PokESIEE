@@ -1,29 +1,34 @@
 import pygame
 
 import config
+import text_display
 from draw_area import DrawArea
 from player import Player
 from game_map import GameMap
 from direction import Directions as dir
 from animation import ScreenAnimationManager
-
+from gsm import GameStateManager
+from pokemon import Pokemon
 
 class Game:
 
     # game constructor
     def __init__(self, screen) -> None:
+        # load all pokemon in the game
+        Pokemon.load_pokemons()
+        # red variable
         self.screen = screen
         # create the area that gonna be drawn
         self.draw_area = DrawArea(0, 0, config.SCREEN_WIDTH, config.SCREEN_HEIGHT)
         # dictionary containing all the gameMap
         self.animation_manager = ScreenAnimationManager()
+        self.gsm = GameStateManager(config.GAME_STATE_EXPLORATION)
         self.maps = {}
-        self.maps['FirstMap'] = GameMap(160, 144, "non.png", "interieur_test_collision.txt", self.animation_manager)
-        self.maps['SecondMap'] = GameMap(800, 320, "route_2.png", "route_2.txt", self.animation_manager)
+        self.maps['FirstMap'] = GameMap(160, 144, "non.png", "interieur_test_collision.txt", self.animation_manager,
+                                        self.gsm)
+        self.maps['SecondMap'] = GameMap(800, 320, "route_2.png", "route_2.txt", self.animation_manager, self.gsm)
         self.currentMap = self.maps['SecondMap']
-
         self.player = Player(self.draw_area, self.currentMap)
-        self.current_state = config.GAME_STATE_EXPLORATION
 
         self.load()
 
@@ -34,36 +39,47 @@ class Game:
 
     # update class method
     def update(self) -> None:
-        if self.current_state == config.GAME_STATE_EXPLORATION:
-            self.handle_event()
+
+        self.handle_event()
+
+        if self.gsm.get_current_state() == config.GAME_STATE_EXPLORATION:
             for map_objects in self.currentMap.map_objects:
                 map_objects.update()
-            if self.animation_manager.have_animation():
-                if self.animation_manager.get_current_animation().isFinished:
-                    self.animation_manager.pop_current_animation()
 
+        elif self.gsm.get_current_state() == config.GAME_STATE_BATTLE:
+            if not self.gsm.current_battle.has_been_loaded():
+                self.gsm.current_battle.begin()
+            self.gsm.current_battle.update()
+
+        if self.animation_manager.have_animation():
+            if self.animation_manager.get_current_animation().isFinished:
+                self.animation_manager.pop_current_animation()
+        else:
+            self.gsm.update_state()
 
     # draw class method
     def draw(self) -> None:
+
+        self.screen.fill((0, 0, 0))
+
         surface_to_draw = pygame.Surface((config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
-        # the player move in the world
-        if self.current_state == config.GAME_STATE_EXPLORATION:
+
+        if not self.animation_manager.have_animation():
+            self.gsm.update_state()
+
+        if self.gsm.get_current_state() == config.GAME_STATE_EXPLORATION:
             # fill the screen black
-            self.screen.fill((0, 0, 0))
             self.currentMap.draw(surface_to_draw, self.draw_area)
             for map_object in self.currentMap.map_objects:
                 map_object.draw(surface_to_draw)
 
-        elif self.current_state == config.GAME_STATE_BATTLE:
-            pass
+        elif self.gsm.get_current_state() == config.GAME_STATE_BATTLE:
+            if self.gsm.current_battle.has_been_loaded():
+                self.gsm.current_battle.draw(surface_to_draw)
 
         if self.animation_manager.have_animation():
-            self.animation_manager.get_current_animation().update(surface_to_draw)
-
-        self.screen.blit(surface_to_draw, (0, 0))
-
-
-
+            current_anim = self.animation_manager.get_current_animation()
+            current_anim.update(surface_to_draw)
 
         self.screen.blit(surface_to_draw, (0, 0))
 

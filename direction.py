@@ -1,5 +1,3 @@
-
-
 class Direction:
 
     def __init__(self, dx: int, dy: int):
@@ -17,13 +15,10 @@ class Direction:
         if self == direction.WEST:
             return direction.EAST
 
-class Directions:
 
+class Directions:
     # create all four direction with the correct dx and dy in each case
     NORTH = Direction(0, -1)
     SOUTH = Direction(0, 1)
     EAST = Direction(1, 0)
     WEST = Direction(-1, 0)
-
-
-

@@ -75,7 +75,3 @@ class PlayerAnimations:
         for i in range(0, 4):
             self.running[dir.EAST].append(spritesheet.pick_image(self.image, x_start, y_start, 32, 44))
             x_start += sprite_width
-
-
-
-

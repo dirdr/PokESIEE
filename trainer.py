@@ -16,6 +16,3 @@ class Trainer:
 
     def get_pokemon_list_size(self):
         return len(self.pokemon_list)
-
-
-

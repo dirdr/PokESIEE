@@ -6,4 +6,3 @@ class Move:
         self.pp = pp
         self.power = power
         self.accuracy = accuracy
-

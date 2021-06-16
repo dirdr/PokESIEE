@@ -13,7 +13,7 @@ class Player(Entity):
 
     # constructor
     def __init__(self, area: DrawArea, game_map: GameMap) -> None:
-        super(Player, self).__init__(10, 10, 'player_spritesheet.png')
+        super(Player, self).__init__(10, 10, 'spritesheet/player_spritesheet.png')
         # player screen position
         self.y_screen = config.SCREEN_HEIGHT / 2 - config.PLAYER_SCALED_HEIGHT / 2
         self.x_screen = config.SCREEN_WIDTH / 2 - config.PLAYER_SCALED_WIDTH / 2
@@ -73,7 +73,7 @@ class Player(Entity):
         self.current_mode = self.next_mode
 
     # finish the animation and reset all the move variables
-    def finish_move(self):
+    def finish_move(self) -> None:
         self.state = config.PLAYER_STATE_IDLE
         self.x_logical_decor = self.dest_x
         self.y_logical_decor = self.dest_y
@@ -82,12 +82,12 @@ class Player(Entity):
         self.dest_x = 0
         self.dest_y = 0
 
-    def update(self):
+    def update(self) -> None:
         self.update_control(config.dt)
         self.update_movement(config.dt)
         self.update_coordinates()
 
-    def update_control(self, dt: float):
+    def update_control(self, dt: float) -> None:
 
         if self.directionPressed[dir.NORTH]:
             self.update_direction(direction.Directions.NORTH, dt)
@@ -175,12 +175,12 @@ class Player(Entity):
         else:
             return True
 
-    def update_coordinates(self):
+    def update_coordinates(self) -> None:
         self.area.x = self.x_render - self.x_screen
         self.area.y = self.y_render - self.y_screen
 
     # Player update function
-    def update_movement(self, dt):
+    def update_movement(self, dt) -> None:
 
         if self.state == config.PLAYER_STATE_MOVING:
 
@@ -219,6 +219,10 @@ class Player(Entity):
                 return self.animation.running[self.facing][time % len(self.animation.running[self.facing])]
             else:
                 return self.animation.walking[self.facing][0]
+
+    def change_current_tile(self, new_tile_x: int, new_tile_y: int) -> None:
+        self.current_tile_x = new_tile_x
+        self.current_tile_y = new_tile_y
 
     # draw class method
     def draw(self, screen) -> None:

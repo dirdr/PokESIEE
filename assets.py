@@ -7,7 +7,7 @@ import spritesheet
 # player animation
 class PlayerAnimations:
 
-    def __init__(self, image: pygame.Surface):
+    def __init__(self, image: pygame.Surface) -> None:
         self.walking = {}
         self.idle = {}
         self.running = {}

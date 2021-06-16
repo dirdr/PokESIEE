@@ -11,9 +11,15 @@ SCREEN_HEIGHT = 320
 scriptPATH = os.path.abspath(inspect.getsourcefile(
     lambda: 0))  # compatible interactive Python Shell
 scriptDIR = os.path.dirname(scriptPATH)
-assets = os.path.join(scriptDIR, "data")
-map_assets = os.path.join(scriptDIR, "map")
+image = os.path.join(scriptDIR, "image")
+map_collision = os.path.join(scriptDIR, "map")
 font = os.path.join(scriptDIR, "font")
+pokemon = os.path.join(scriptDIR, "pokemon")
+
+maps_image = os.path.join(image, "map_image")
+misc_sprite = os.path.join(image, "misc_sprite")
+spritesheet = os.path.join(image, "spritesheet")
+user_interface = os.path.join(image, "ui")
 
 # Player constant
 PLAYER_VELOCITY = 1
@@ -66,4 +72,15 @@ GAME_STATE_BATTLE = 2
 
 TYPE_BATTLE_WILD_POKEMON = 0
 TYPE_BATTLE_TRAINER = 1
+
+
+BATTLE_STATE_READY_TO_PROGRESS = 0
+BATTLE_STATE_WIN = 1
+BATTLE_STATE_LOOSE = 2
+BATTLE_STATE_RUN = 3
+BATTLE_STATE_CHOOSE_NEW_POKEMON = 4
+
+
+
+
 

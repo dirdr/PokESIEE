@@ -1,9 +1,10 @@
 import pokemon
 
 
+# this class represent a pokemon trainer
 class Trainer:
 
-    def __init__(self, poke: pokemon.Pokemon):
+    def __init__(self, poke: pokemon.Pokemon) -> None:
         self.pokemon_list = []
         self.pokemon_list.append(poke)
 
@@ -14,5 +15,8 @@ class Trainer:
             self.pokemon_list.append(poke)
             return True
 
-    def get_pokemon_list_size(self):
+    def get_current_pokemon(self) -> pokemon.Pokemon:
+        return self.pokemon_list[0]
+
+    def get_pokemon_list_size(self) -> int:
         return len(self.pokemon_list)

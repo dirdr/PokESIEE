@@ -1,6 +1,6 @@
 import os
 import pygame
-from config import assets
+import config
 
 
 class Entity:
@@ -10,5 +10,5 @@ class Entity:
         self.width = width
         self.height = height
         self.imagePath = image_path
-        self.image = pygame.image.load(os.path.join(assets, self.imagePath))
+        self.image = pygame.image.load(os.path.join(config.image, self.imagePath))
         self.scaled = pygame.transform.scale2x(self.image)

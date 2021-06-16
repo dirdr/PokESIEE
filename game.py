@@ -1,7 +1,7 @@
 import pygame
-
 import config
-import text_display
+import pokemon
+import trainer
 from draw_area import DrawArea
 from player import Player
 from game_map import GameMap
@@ -9,6 +9,7 @@ from direction import Directions as dir
 from animation import ScreenAnimationManager
 from gsm import GameStateManager
 from pokemon import Pokemon
+
 
 class Game:
 
@@ -24,13 +25,99 @@ class Game:
         self.animation_manager = ScreenAnimationManager()
         self.gsm = GameStateManager(config.GAME_STATE_EXPLORATION)
         self.maps = {}
-        self.maps['FirstMap'] = GameMap(160, 144, "non.png", "interieur_test_collision.txt", self.animation_manager,
-                                        self.gsm)
-        self.maps['SecondMap'] = GameMap(800, 320, "route_2.png", "route_2.txt", self.animation_manager, self.gsm)
-        self.currentMap = self.maps['SecondMap']
+        self.player_trainer = trainer.Trainer(pokemon.get_poke(17))
+        self.pokemon_list = {}
+        self.load_pokemon_list_in_map()
+        self.load_map()
+        self.currentMap = self.maps['Route2']
         self.player = Player(self.draw_area, self.currentMap)
-
         self.load()
+
+    def load_map(self):
+        self.maps['Route2'] = GameMap(800, 320, "map_image/route_2.png", "route_2.txt", self.animation_manager,
+                                      self.gsm,
+                                      self.pokemon_list['Route2'], self.player_trainer)
+
+    def load_pokemon_list_in_map(self):
+
+        self.pokemon_list['Route1'] = [
+            pokemon.get_poke(16),
+            pokemon.get_poke(19),
+            pokemon.get_poke(25),
+            pokemon.get_poke(261),
+        ]
+        self.pokemon_list['Route2'] = [
+            pokemon.get_poke(58),
+            pokemon.get_poke(43),
+            pokemon.get_poke(231),
+            pokemon.get_poke(29),
+            pokemon.get_poke(32),
+            pokemon.get_poke(403),
+            pokemon.get_poke(276),
+            pokemon.get_poke(532)
+        ]
+        self.pokemon_list['ForetMaudite'] = [
+            pokemon.get_poke(92),
+            pokemon.get_poke(200),
+            pokemon.get_poke(406),
+            pokemon.get_poke(543),
+            pokemon.get_poke(355),
+            pokemon.get_poke(198),
+            pokemon.get_poke(451),
+        ]
+        self.pokemon_list['Manoir'] = [
+            pokemon.get_poke(92),
+            pokemon.get_poke(355),
+            pokemon.get_poke(200),
+            pokemon.get_poke(442),
+            pokemon.get_poke(228),
+            pokemon.get_poke(607),
+        ]
+        self.pokemon_list['Route3'] = [
+            pokemon.get_poke(246),
+            pokemon.get_poke(309),
+            pokemon.get_poke(624),
+            pokemon.get_poke(626),
+            pokemon.get_poke(396),
+            pokemon.get_poke(287),
+            pokemon.get_poke(179)
+        ]
+        self.pokemon_list['DesertDelassant'] = [
+            pokemon.get_poke(27),
+            pokemon.get_poke(111),
+            pokemon.get_poke(304),
+            pokemon.get_poke(529),
+            pokemon.get_poke(551)
+        ]
+
+        self.pokemon_list['Route4'] = [
+            pokemon.get_poke(322),
+            pokemon.get_poke(449),
+            pokemon.get_poke(115),
+            pokemon.get_poke(344),
+        ]
+
+        self.pokemon_list['Route5'] = [
+            pokemon.get_poke(350),
+            pokemon.get_poke(437),
+            pokemon.get_poke(589),
+            pokemon.get_poke(617)
+        ]
+
+        self.pokemon_list['Grotte'] = [
+            pokemon.get_poke(614),
+            pokemon.get_poke(473),
+            pokemon.get_poke(362),
+            pokemon.get_poke(76),
+            pokemon.get_poke(472)
+        ]
+
+        self.pokemon_list['Route6'] = [
+            pokemon.get_poke(350),
+            pokemon.get_poke(437),
+            pokemon.get_poke(589),
+            pokemon.get_poke(617)
+        ]
 
     # load class method
     def load(self) -> None:
@@ -86,6 +173,7 @@ class Game:
     def handle_event(self) -> None:
 
         for event in pygame.event.get():
+
             if event.type == pygame.QUIT:
                 config.MAIN_LOOP_DOWN = True
             if event.type == pygame.KEYDOWN:
@@ -113,3 +201,5 @@ class Game:
                     self.player.release_direction(dir.WEST)
                 if event.key == pygame.K_RIGHT:
                     self.player.release_direction(dir.EAST)
+
+

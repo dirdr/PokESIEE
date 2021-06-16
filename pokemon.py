@@ -1,4 +1,6 @@
 from typing import Optional, Dict, List, Any
+
+import pokemon
 import spritesheet
 from entity import Entity
 from type import TYPES, Type
@@ -15,8 +17,8 @@ def to_3_digit(num: int) -> str:
     return str(num)
 
 
-poke_dos = Entity(2976, 2016, 'poke_dos.png')
-poke_face = Entity(2976, 2016, 'poke_face.png')
+poke_dos = Entity(2976, 2016, 'spritesheet/poke_dos.png')
+poke_face = Entity(2976, 2016, 'spritesheet/poke_face.png')
 
 ID_LIST: List[int] = [4, 5, 6, 252, 253, 254, 393, 394, 395, 16, 17, 18, 25, 26, 19, 20, 261, 262, 143, 29, 30, 31, 32,
                       33, 34, 58, 59, 43, 44, 45,
@@ -35,7 +37,7 @@ POKEMONS: List[Optional['Pokemon']] = [None for i in range(NB_POKEMON + 1)]
 class Pokemon(Entity):
 
     def __init__(self, id: int, data: Dict[str, Any], ):
-        super(Pokemon, self).__init__(96, 96, 'empty.png')
+        super(Pokemon, self).__init__(96, 96, 'misc_sprite/empty.png')
         self.name: str = get_args(data, "name", id)
         self.id: int = id
         self.level: int = get_args(data, "level", id)
@@ -56,7 +58,16 @@ class Pokemon(Entity):
                                                   self.height)
         self.back_image = spritesheet.pick_image(poke_dos.image, id % 31 * 96, int(id / 31) * 96, self.width,
                                                  self.height)
+
         self.evolution: List[Optional[int]] = get_args(data, "evolution", id)
+
+
+    def get_poke_id(name: str) -> int:
+        for poke in POKEMONS:
+            if poke != None:
+                if poke.name == name:
+                    return POKEMONS.index(poke)
+        return "Introuvable"
 
     def calc_exp_max(self) -> None:
         self.exp_max = self.level ** 3
@@ -75,9 +86,10 @@ class Pokemon(Entity):
             poke_id: int = ID_LIST[i]
             id_str = to_3_digit(poke_id)
             try:
-                with open("data/pokemon/{}.json".format(id_str), "r", encoding='utf-8') as file:
+                with open("pokemon/{}.json".format(id_str), "r", encoding='utf-8') as file:
                     data = json.load(file)
                     POKEMONS[poke_id] = Pokemon(poke_id, data)
+                    print(poke_id)
             except FileNotFoundError:
                 print(f'pokemon id : {poke_id}, not found')
                 break
@@ -87,7 +99,4 @@ class Pokemon(Entity):
 
 
 def get_poke(num_id: int):
-    return POKEMONS[num_id].get_name()
-
-
-
+    return POKEMONS[num_id]

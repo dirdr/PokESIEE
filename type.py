@@ -1,14 +1,11 @@
 from typing import Dict
-
 import pygame.image
-
 import config
 import spritesheet
-from entity import Entity
 import os
 
+image = pygame.image.load(os.path.join(config.spritesheet, "elements.png"))
 
-image = pygame.image.load(os.path.join(config.assets, "elements.png"))
 
 class Type:
 

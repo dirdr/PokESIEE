@@ -13,15 +13,16 @@ if __name__ == '__main__':
     # create a new instance of game
     gm = Game(screen)
 
-    done = False
 
-    gm.load()
+    done = False
 
     # Main Game Loop
     while not config.MAIN_LOOP_DOWN:
         gm.update()
         gm.draw()
         config.GAME_CLOCK.tick(60)
+
+        # print("FPS : " + str(int(config.GAME_CLOCK.get_fps())))
         pygame.display.flip()
 
     pygame.quit()

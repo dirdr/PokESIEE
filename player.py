@@ -7,19 +7,23 @@ import numpy
 from direction import Directions as dir
 import direction
 from assets import PlayerAnimations
+import animation
 
 
 class Player(Entity):
 
     # constructor
-    def __init__(self, area: DrawArea, game_map: GameMap) -> None:
+    def __init__(self, area: DrawArea, game) -> None:
         super(Player, self).__init__(10, 10, 'spritesheet/player_spritesheet.png')
+        self.game = game
         # player screen position
         self.y_screen = config.SCREEN_HEIGHT / 2 - config.PLAYER_SCALED_HEIGHT / 2
         self.x_screen = config.SCREEN_WIDTH / 2 - config.PLAYER_SCALED_WIDTH / 2
         # player current logical tile
-        self.current_tile_x = 7
-        self.current_tile_y = 6
+        self.area = area
+        self.game_map = self.game.current_localisation.map
+        self.current_tile_x = 10
+        self.current_tile_y = 10
         # player logical position
         self.x_logical_decor = self.current_tile_x * config.TILE_SIZE_SCALED
         self.y_logical_decor = self.current_tile_y * config.TILE_SIZE_SCALED + config.PLAYER_OFFSET_FOOT
@@ -33,9 +37,6 @@ class Player(Entity):
         self.dest_y = self.y_logical_decor
         # animation timer
         self.animation_timer = 0
-        # ref variables
-        self.area = area
-        self.game_map = game_map
         # screen blit coordinates configuration
         self.area.x = self.x_render - self.x_screen
         self.area.y = self.y_render - self.y_screen
@@ -55,7 +56,6 @@ class Player(Entity):
         self.state = config.PLAYER_STATE_IDLE
         self.current_mode = config.PLAYER_MODE_WALK
         self.next_mode = config.PLAYER_MODE_WALK
-        self.cool_down = config.COOL_DOWN_WALKING
         self.request_move_frame = True
 
     # initialize all the move variables
@@ -172,10 +172,35 @@ class Player(Entity):
         elif self.game_map.map_grid[tile_to_look_y][tile_to_look_x] == 'g':
             self.game_map.handle_grass_event()
             return True
+        elif self.game_map.map_grid[tile_to_look_y][tile_to_look_x] == 'S':
+            self.game.option = 'South'
+            self.game.change_next_localisation()
+            self.game_map.map_objects.remove(self)
+            self.game.load_next_localisation()
+            return False
+        elif self.game_map.map_grid[tile_to_look_y][tile_to_look_x] == 'N':
+            self.game.option = 'North'
+            self.game.change_next_localisation()
+            self.game_map.map_objects.remove(self)
+            self.game.load_next_localisation()
+            return False
+        elif self.game_map.map_grid[tile_to_look_y][tile_to_look_x] == 'W':
+            self.game.option = 'West'
+            self.game.change_next_localisation()
+            self.game_map.map_objects.remove(self)
+            self.game.load_next_localisation()
+            return False
+        elif self.game_map.map_grid[tile_to_look_y][tile_to_look_x] == 'E':
+            self.game.option = 'East'
+            self.game.change_next_localisation()
+            self.game_map.map_objects.remove(self)
+            self.game.load_next_localisation()
+            return False
         else:
             return True
 
     def update_coordinates(self) -> None:
+
         self.area.x = self.x_render - self.x_screen
         self.area.y = self.y_render - self.y_screen
 
@@ -220,9 +245,14 @@ class Player(Entity):
             else:
                 return self.animation.walking[self.facing][0]
 
-    def change_current_tile(self, new_tile_x: int, new_tile_y: int) -> None:
-        self.current_tile_x = new_tile_x
-        self.current_tile_y = new_tile_y
+    def change_current_tile(self, new_coordinate: tuple[int, int]) -> None:
+        self.current_tile_x = new_coordinate[0]
+        self.current_tile_y = new_coordinate[1]
+        self.x_logical_decor = self.current_tile_x * config.TILE_SIZE_SCALED
+        self.y_logical_decor = self.current_tile_y * config.TILE_SIZE_SCALED + config.PLAYER_OFFSET_FOOT
+        self.x_render = self.x_logical_decor
+        self.y_render = self.y_logical_decor
+        self.update_coordinates()
 
     # draw class method
     def draw(self, screen) -> None:

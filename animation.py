@@ -1,10 +1,14 @@
+from typing import Union
+
 import pygame
 import os
-
 # this class contains many useful animation for battle etc
+from pygame.surface import SurfaceType, Surface
+
 import config
 import pokemon
 import spritesheet
+import text_box
 
 
 class ScreenAnimation:
@@ -12,6 +16,9 @@ class ScreenAnimation:
     def __init__(self) -> None:
         self.isFinished = False
         self.alpha = 300
+
+    def update(self, surface):
+        pass
 
 
 class ScreenFadeIn(ScreenAnimation):
@@ -25,7 +32,16 @@ class ScreenFadeIn(ScreenAnimation):
             surface.set_alpha(self.alpha)
             self.alpha -= self.fade_speed
         else:
+            print("animation over")
             self.isFinished = True
+
+
+class PlayerChooseAttack(ScreenAnimation):
+
+    def __init__(self, poke: pokemon.Pokemon):
+        super(PlayerChooseAttack, self).__init__()
+        attack = poke.moves
+        print(attack)
 
 
 class ScreenFadeOut(ScreenAnimation):
@@ -163,7 +179,8 @@ class PlayerEnterBattle(ScreenAnimation):
             self.sprites.append(sub_image)
             x_temp += 128
         self.sprites.append(
-            pygame.transform.scale(pygame.image.load(os.path.join(config.image, "misc_sprite/poke_ball.png")), (20, 25)))
+            pygame.transform.scale(pygame.image.load(os.path.join(config.image, "misc_sprite/poke_ball.png")),
+                                   (20, 25)))
 
     def update(self, surface) -> None:
 
@@ -194,25 +211,38 @@ class PlayerEnterBattle(ScreenAnimation):
                         self.isFinished = True
 
 
-class TextDisplay(ScreenAnimation):
+class ListenableTextDisplay(ScreenAnimation):
 
-    def __init__(self, message: str) -> None:
-        super(TextDisplay, self).__init__()
-        pygame.font.init()
-        self.font = pygame.font.Font(os.path.join(config.font, "game_font.ttf"), 16)
-        self.timer = 0
-        self.zone = (15, 235)
-        self.message = message
+    def __init__(self, message: list[str, str]):
+        super(ListenableTextDisplay, self).__init__()
+        self.text_box = text_box.TextBox(message)
+
+        self.arrow = pygame.transform.scale(
+            pygame.transform.rotate(pygame.image.load(os.path.join(config.image, "ui/arrow.png")), -90), (12, 14))
+        if message[1] == "":
+            coordinate = self.text_box.coordinate[0]
+            self.arrow_x_coordinate = self.text_box.font.size(message[0])[0] + coordinate[0]
+            self.arrow_y_coordinate = coordinate[1]
+        else:
+            coordinate = self.text_box.coordinate[1]
+            self.arrow_x_coordinate = self.text_box.font.size(message[1])[0] + coordinate[0]
+            self.arrow_y_coordinate = coordinate[1]
+
+        self.arrow_animation_x = self.arrow_x_coordinate
+        self.arrow_animation_y = self.arrow_y_coordinate
         self.user_input = False
 
-    def update(self, surface) -> None:
-        temp_surface = (self.font.render(self.message, False, (0, 0, 0)))
-        surface.blit(temp_surface, self.zone)
+    def update(self, surface):
+        self.text_box.draw(surface)
+        surface.blit(self.arrow, (self.arrow_animation_x, self.arrow_animation_y))
+        self.arrow_animation_y += 0.12
+        if self.arrow_animation_y - self.arrow_y_coordinate > 5:
+            self.arrow_animation_y = self.arrow_y_coordinate
         self.listen_key()
         if self.user_input:
             self.isFinished = True
 
-    def listen_key(self) -> None:
+    def listen_key(self):
         keys_pressed = pygame.key.get_pressed()
         if keys_pressed[pygame.K_n]:
             self.user_input = True
@@ -235,6 +265,3 @@ class ScreenAnimationManager:
 
     def add_animation(self, animation) -> None:
         self.animation_queue.insert(0, animation)
-
-
-

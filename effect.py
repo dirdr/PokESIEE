@@ -1,4 +1,4 @@
-from type import Type, TYPES
+from element import Type, TYPES
 from ability import move
 import config
 import os

@@ -71,3 +71,4 @@ class BattleUpdater:
                 self.need_to_draw_player_pokemon = False
         if self.need_to_draw_player_pokemon:
             surface.blit(self.battle.player.get_current_pokemon().back_image, (60, 135))
+

@@ -28,6 +28,9 @@ class Battle:
     def begin(self) -> None:
         self.anim_manager.add_animation(animation.RectAnimation())
 
+    def play_turn(self):
+        self.queue.add_event(battle_event_queue.ChooseAttack(self.player.get_current_pokemon()))
+
     def process_one_turn(self) -> None:
         pass
 
@@ -69,6 +72,9 @@ class WildBattle(Battle):
         # first user input
         self.queue.add_event(battle_event_queue.BattleEventOptionBoxAndTextBox(self.player))
         self.loaded = True
+
+    def play_turn(self):
+        super.play_turn()
 
 
 class BattleMechanics:

@@ -48,3 +48,11 @@ class BattleEventOptionBoxAndTextBox(Event):
     def draw(self, surface):
         self.current_text_box.draw(surface)
         self.current_option_box.draw(surface)
+
+
+class ChooseAttack(Event):
+
+    def __init__(self, pokemon):
+        super(ChooseAttack, self).__init__()
+        self.current_option_box = selection_box.SelectionBox(int(config.SCREEN_WIDTH / 2) + 30,
+                                                             int(config.SCREEN_WIDTH / 2) - 30, pokemon.moves, len(pokemon.moves))

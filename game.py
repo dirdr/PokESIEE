@@ -11,6 +11,7 @@ from game_map import GameMap
 from direction import Directions as dir
 from animation import ScreenAnimationManager
 from pokemon import Pokemon
+from ability import loadmoves
 
 
 class Game:
@@ -23,7 +24,11 @@ class Game:
         self.screen = screen
         # create the area that gonna be drawn
         self.draw_area = DrawArea(0, 0, config.SCREEN_WIDTH, config.SCREEN_HEIGHT)
-        self.player_trainer = trainer.Trainer(pokemon.get_poke(17))
+
+        player_premier_pokemon = pokemon.get_poke(306)
+        player_premier_pokemon.learn(loadmoves.ALL_MOVES["charge"])
+        self.player_trainer = trainer.Trainer(player_premier_pokemon)
+
         self.animation_manager = ScreenAnimationManager()
         # dictionary containing all the gameMap
         self.maps = {}

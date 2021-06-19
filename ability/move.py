@@ -1,10 +1,14 @@
-from type import TYPES, Type
+# from ..pokemon import Pokemon
+import sys
+sys.path.append('.')
+from element import TYPES, Type
+from typing import List
 
 SPECIAL = "SPECIAL"
 STATUS = "STATUS"
 PHYSICAL = "PHYSICAL"
 
-CATEGORYS: list[str] = [SPECIAL, STATUS, PHYSICAL]
+CATEGORYS: List[str] = [SPECIAL, STATUS, PHYSICAL]
 
 
 class MoveError(Exception):
@@ -21,20 +25,21 @@ class MoveError(Exception):
             return "Error in class Move has been raised"
 
 
-class AbstractMove:
+class Move:
 
-    def __init__(self, name: str, move_type: str, category: str, pp: int, power: int, accuracy: int,
-                 self_dmg: int) -> None:
+    def __init__(self, name: str, move_type: str, category: str, description: str, pp: int, power: int, accuracy: float,
+                 self_dmg: float) -> None:
         self.name: str = name
         self.move_type: Type = TYPES[move_type]
         if category not in CATEGORYS:
             raise MoveError(f"Invalid category {category}, not in CATEGORYS list")
         self.category: str = category
+        self.description = description
         self.pp: int = pp
         self.pp_max: int = pp
         self.power: int = power
-        self.accuracy: int = accuracy
-        self.self_dmg: int = self_dmg
+        self.accuracy: float = accuracy
+        self.self_dmg: float = self_dmg
 
     def use(self):
         pass

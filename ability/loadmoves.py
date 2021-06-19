@@ -1,23 +1,34 @@
+# -*- coding: mbcs -*-
+from . import move
 import pandas as pd
 import os
 import inspect
 
-
 scriptPATH = os.path.abspath(inspect.getsourcefile(lambda: 0))  # compatible interactive Python Shell
 scriptDIR = os.path.dirname(scriptPATH)
-# for f in os.listdir("/"):
-#   print(f)
+f = pd.read_csv(os.path.join(scriptDIR, 'poke_abilitys.csv'), ';')
 
-f = pd.read_csv(os.path.join(scriptDIR,'poke_abilitys.csv'),';')
-#print(f.loc[0])
+ALL_MOVES: dict[str: move.Move] = {}
 
-for i in range(0,121):
-    t = f.loc[i]
-    test = open(os.path.join(scriptDIR,f'{t[0]}.py'),'x')
 
-    test.write('from move import AbstractMove'+"\n"+"\n")
-    test.write(f'class {t[0]} (AbstractMove):'+"\n")
-    test.write(f'   def __init__(self):'+"\n")
-    test.write(f'       super.__init__("{t[1]}","{t[2]}","{t[3]}","{t[4]}",{t[5]},{t[6]},{t[7]},{t[8]})'+"\n")
-    test.write('   def use(self):'+"\n"+'      pass')
-    test.close()
+def loadmoves():
+    global ALL_MOVES
+
+    for i in range(0, 121):
+        t = f.loc[i]
+        test = open(os.path.join(scriptDIR, 'loadmoves.py'), 'a')
+        # print(t[0])
+        ALL_MOVES[f"{t[0]}"] = move.Move(f"{t[1]}", f"{t[2]}", f"{t[3]}", f"{t[4]}", {int(t[5])}, {int(t[6])}, {t[7]}, {t[8]})
+
+        test.close()
+
+
+# loadmoves()
+# # print(ALL_MOVES)
+# print(ALL_MOVES["griffe"])
+
+
+def get_Move(name: str) -> move.Move:
+    global ALL_MOVES
+    return ALL_MOVES[name]
+

@@ -22,8 +22,8 @@ class Player(Entity):
         # player current logical tile
         self.area = area
         self.game_map = self.game.current_localisation.map
-        self.current_tile_x = 10
-        self.current_tile_y = 10
+        self.current_tile_x = 20
+        self.current_tile_y = 15
         # player logical position
         self.x_logical_decor = self.current_tile_x * config.TILE_SIZE_SCALED
         self.y_logical_decor = self.current_tile_y * config.TILE_SIZE_SCALED + config.PLAYER_OFFSET_FOOT

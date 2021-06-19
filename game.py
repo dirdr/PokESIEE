@@ -19,6 +19,7 @@ class Game:
     # game constructor
     def __init__(self, screen) -> None:
         # load all pokemon in the game
+        #loadmoves.loadmoves()
         Pokemon.load_pokemons()
         # red variable
         self.screen = screen
@@ -26,7 +27,7 @@ class Game:
         self.draw_area = DrawArea(0, 0, config.SCREEN_WIDTH, config.SCREEN_HEIGHT)
 
         player_premier_pokemon = pokemon.get_poke(306)
-        player_premier_pokemon.learn(loadmoves.ALL_MOVES["charge"])
+        # player_premier_pokemon.learn(loadmoves.ALL_MOVES["charge"])
         self.player_trainer = trainer.Trainer(player_premier_pokemon)
 
         self.animation_manager = ScreenAnimationManager()
@@ -35,7 +36,7 @@ class Game:
         self.load_map()
         self.localisation_list = {}
         self.localisations_objet = localisation.Localisations(self)
-        self.current_localisation = self.localisation_list['Route2']
+        self.current_localisation = self.localisation_list['ville_1']
         self.next_localisation = localisation.Localisation({}, {}, "test")
         self.current_state = config.GAME_STATE_EXPLORATION
         self.next_state = config.GAME_STATE_EXPLORATION
@@ -44,15 +45,14 @@ class Game:
         self.current_localisation.map.map_objects.append(self.player)
         self.option = ''
 
-
     def load_map(self):
 
-        pokemon_list = {'Route1': [
+        pokemon_list = {'route_1': [
             pokemon.get_poke(16),
             pokemon.get_poke(19),
             pokemon.get_poke(25),
             pokemon.get_poke(261),
-        ], 'Route2': [
+        ], 'route_2': [
             pokemon.get_poke(58),
             pokemon.get_poke(43),
             pokemon.get_poke(231),
@@ -61,22 +61,7 @@ class Game:
             pokemon.get_poke(403),
             pokemon.get_poke(276),
             pokemon.get_poke(532)
-        ], 'ForetMaudite': [
-            pokemon.get_poke(92),
-            pokemon.get_poke(200),
-            pokemon.get_poke(406),
-            pokemon.get_poke(543),
-            pokemon.get_poke(355),
-            pokemon.get_poke(198),
-            pokemon.get_poke(451),
-        ], 'Manoir': [
-            pokemon.get_poke(92),
-            pokemon.get_poke(355),
-            pokemon.get_poke(200),
-            pokemon.get_poke(442),
-            pokemon.get_poke(228),
-            pokemon.get_poke(607),
-        ], 'Route3': [
+        ], 'route_3': [
             pokemon.get_poke(246),
             pokemon.get_poke(309),
             pokemon.get_poke(624),
@@ -84,51 +69,85 @@ class Game:
             pokemon.get_poke(396),
             pokemon.get_poke(287),
             pokemon.get_poke(179)
-        ], 'DesertDelassant': [
+        ], 'route_5': [
+            pokemon.get_poke(350),
+            pokemon.get_poke(437),
+            pokemon.get_poke(589),
+            pokemon.get_poke(617)
+        ], 'desert': [
             pokemon.get_poke(27),
             pokemon.get_poke(111),
             pokemon.get_poke(304),
             pokemon.get_poke(529),
             pokemon.get_poke(551)
-        ], 'Route4': [
-            pokemon.get_poke(322),
-            pokemon.get_poke(449),
-            pokemon.get_poke(115),
-            pokemon.get_poke(344),
-        ], 'Route5': [
-            pokemon.get_poke(350),
-            pokemon.get_poke(437),
-            pokemon.get_poke(589),
-            pokemon.get_poke(617)
-        ], 'Grotte': [
+        ], 'foret': [
+            pokemon.get_poke(92),
+            pokemon.get_poke(200),
+            pokemon.get_poke(406),
+            pokemon.get_poke(543),
+            pokemon.get_poke(355),
+            pokemon.get_poke(198),
+            pokemon.get_poke(451),
+        ], 'grotte_2': [
             pokemon.get_poke(614),
             pokemon.get_poke(473),
             pokemon.get_poke(362),
             pokemon.get_poke(76),
             pokemon.get_poke(472)
-        ], 'Route6': [
-            pokemon.get_poke(350),
-            pokemon.get_poke(437),
-            pokemon.get_poke(589),
-            pokemon.get_poke(617)
+        ], 'grotte_3': [
+            pokemon.get_poke(614),
+            pokemon.get_poke(473),
+            pokemon.get_poke(362),
+            pokemon.get_poke(76),
+            pokemon.get_poke(472)
         ]}
 
-        self.maps['Route2'] = GameMap(801, 321, "map_image/route_2.png", "route_2.txt",
-                                      pokemon_list['Route2'], "Route2", self)
+        localisation_name = ['route_1',
+                             'route_2',
+                             'route_3',
+                             'route_5',
+                             'ville_1',
+                             'ville_2',
+                             'ville_3',
+                             'ville_4',
+                             'ville_5',
+                             'desert',
+                             'foret',
+                             'grotte_2',
+                             'grotte_3',
+                             ]
+        localisation_size = [(880, 1760),
+                             (800, 320),
+                             (1281, 321),
+                             (880, 1120),
+                             (640, 640),
+                             (640, 640),
+                             (960, 640),
+                             (1280, 640),
+                             (1520, 800),
+                             (640, 2244),
+                             (768, 704),
+                             (272, 528),
+                             (512, 416)
+                             ]
 
-        print(pokemon_list['Route2'])
+        for i in range(0, len(localisation_name)):
+            fichier_text = localisation_name[i] + ".txt"
+            fichier_image = "map_image/" + localisation_name[i] + ".png"
+            name = localisation_name[i]
+            # if the localisation is a city, there is no pokemon
+            if name[0] == 'v':
+                temp_pokemon_list = []
+            else:
+                temp_pokemon_list = pokemon_list[localisation_name[i]]
 
-        self.maps['Route2'].load_map_array()
-
-        self.maps['ForetMaudite'] = GameMap(768, 704, "map_image/Foret.png", "Foret.txt",
-                                            pokemon_list['ForetMaudite'], 'ForetMaudite', self)
-
-        self.maps['ForetMaudite'].load_map_array()
-
-        self.maps['Ville1'] = GameMap(640, 640, "map_image/Ville_1.png", "Ville_1.txt", [], 'Ville1', self)
-        self.maps['Ville1'].load_map_array()
-
-
+            try:
+                self.maps[localisation_name[i]] = GameMap(localisation_size[i][0], localisation_size[i][1],
+                                                          fichier_image,
+                                                          fichier_text, temp_pokemon_list, localisation_name[i], self)
+                self.maps[localisation_name[i]].load_map_array()
+            except FileNotFoundError:
+                print(fichier_image)
 
     # update class method
     def update(self) -> None:

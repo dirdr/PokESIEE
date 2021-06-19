@@ -1,5 +1,4 @@
-from typing import Any, Dict
-
+from typing import Any,Dict
 
 class PokemonParseError(Exception):
 
@@ -15,8 +14,7 @@ class PokemonParseError(Exception):
         else:
             return "PokemonParseError has been raised"
 
-
-def get_args(data: Dict[str, Any], key: str, _id: Any, default=None, type_check=None, _type="pokemon") -> Any:
+def get_args(data: Dict[str, Any], key: str, _id: Any, default=None, type_check=None, _type="pokemon")-> Any:
     value = None
     if default is not None:
         value = data[key] if key in data else None if default == "NONE" else default
@@ -26,6 +24,5 @@ def get_args(data: Dict[str, Any], key: str, _id: Any, default=None, type_check=
         value = data[key]
     if type_check:
         if value and not isinstance(value, type_check):
-            raise PokemonParseError(
-                "Invalid var type for {} need be {} for {} ({})".format(key, type_check, _type, _id))
+            raise PokemonParseError("Invalid var type for {} need be {} for {} ({})".format(key, type_check, _type, _id))
     return value

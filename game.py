@@ -19,16 +19,24 @@ class Game:
     # game constructor
     def __init__(self, screen) -> None:
         # load all pokemon in the game
-        #loadmoves.loadmoves()
+        loadmoves.loadmoves()
         Pokemon.load_pokemons()
+        trainer.load_trainer()
         # red variable
         self.screen = screen
         # create the area that gonna be drawn
         self.draw_area = DrawArea(0, 0, config.SCREEN_WIDTH, config.SCREEN_HEIGHT)
+        player_premier_pokemon = pokemon.get_poke(25)
+        deuxieme_pokemon = pokemon.get_poke(34)
+        player_premier_pokemon.learn('eclair')
+        deuxieme_pokemon.learn('dard_venin')
+        temp_poke_list = []
+        temp_poke_list.append(player_premier_pokemon)
+        temp_poke_list.append(deuxieme_pokemon)
+        self.player_trainer = trainer.Trainer('Player', temp_poke_list, '')
+        Pokemon.auto_learn_all()
 
-        player_premier_pokemon = pokemon.get_poke(306)
-        # player_premier_pokemon.learn(loadmoves.ALL_MOVES["charge"])
-        self.player_trainer = trainer.Trainer(player_premier_pokemon)
+        self.player_save = []
 
         self.animation_manager = ScreenAnimationManager()
         # dictionary containing all the gameMap
@@ -36,12 +44,13 @@ class Game:
         self.load_map()
         self.localisation_list = {}
         self.localisations_objet = localisation.Localisations(self)
-        self.current_localisation = self.localisation_list['ville_1']
+        self.current_localisation = self.localisation_list['route_1']
         self.next_localisation = localisation.Localisation({}, {}, "test")
         self.current_state = config.GAME_STATE_EXPLORATION
         self.next_state = config.GAME_STATE_EXPLORATION
         self.current_battle = Battle
         self.player = Player(self.draw_area, self)
+        self.player_save.append((self.player.current_tile_x, self.player.current_tile_y))
         self.current_localisation.map.map_objects.append(self.player)
         self.option = ''
 
@@ -102,6 +111,66 @@ class Game:
             pokemon.get_poke(472)
         ]}
 
+        trainers_list = {'route_1': [
+            trainer.get_trainer("gamin_farouk"),
+            trainer.get_trainer("marin_francois"),
+            trainer.get_trainer("jumelle_anne"),
+            trainer.get_trainer("jumelle_frank")
+        ], 'route_2': [
+            trainer.get_trainer("gamin_titouan"),
+            trainer.get_trainer("fillette_amelie"),
+            trainer.get_trainer("scout_antonin"),
+            trainer.get_trainer("fillette_zoe"),
+            trainer.get_trainer("gamin_theo")
+        ], 'foret': [
+            trainer.get_trainer("scout_maxence"),
+            trainer.get_trainer("mysti_gertrude"),
+            trainer.get_trainer("combat_alexandre"),
+            trainer.get_trainer("fillette_anna"),
+            trainer.get_trainer("scout_noe")
+        ], 'manoir': [
+            trainer.get_trainer("homme_etrange")
+        ], 'route_3': [
+            trainer.get_trainer("ornitho_pierre"),
+            trainer.get_trainer("motard_louis"),
+            trainer.get_trainer("pecheur_JP"),
+            trainer.get_trainer("bandit_arthur")
+        ], 'desert': [
+            trainer.get_trainer("mont_gilbert"),
+            trainer.get_trainer("top_hitomi"),
+            trainer.get_trainer("scout_timothe"),
+            trainer.get_trainer("mont_jhon")
+        ], 'route_4': [
+            trainer.get_trainer("mont_matthias"),
+            trainer.get_trainer("top_nicholas"),
+            trainer.get_trainer("fillette_lucie"),
+            trainer.get_trainer("gamin_jordan"),
+            trainer.get_trainer("mysti_jeanne")
+        ], 'route_5': [
+            trainer.get_trainer("top_alain"),
+            trainer.get_trainer("combat_arnaud"),
+            trainer.get_trainer("gamin_guillaume"),
+            trainer.get_trainer("gentleman_pierrot"),
+        ], 'grotte_2': [
+            trainer.get_trainer("mont_jack"),
+            trainer.get_trainer("fillette_aurore"),
+            trainer.get_trainer("gamin_florian"),
+            trainer.get_trainer("bandit_hugo"),
+            trainer.get_trainer("mont_charlie")
+
+        ], 'grotte_3': [
+            trainer.get_trainer("mont_jack"),
+            trainer.get_trainer("fillette_aurore"),
+            trainer.get_trainer("gamin_florian"),
+            trainer.get_trainer("bandit_hugo"),
+            trainer.get_trainer("mont_charlie")
+
+        ], 'route_6': [
+            trainer.get_trainer("scout_alban"),
+            trainer.get_trainer("mysti_laure"),
+            trainer.get_trainer("top_bastian"),
+        ]}
+
         localisation_name = ['route_1',
                              'route_2',
                              'route_3',
@@ -115,6 +184,8 @@ class Game:
                              'foret',
                              'grotte_2',
                              'grotte_3',
+                             'labo',
+                             'maison_depart'
                              ]
         localisation_size = [(880, 1760),
                              (800, 320),
@@ -128,15 +199,23 @@ class Game:
                              (640, 2244),
                              (768, 704),
                              (272, 528),
-                             (512, 416)
+                             (512, 416),
+                             (208, 208),
+                             (176, 128)
                              ]
 
         for i in range(0, len(localisation_name)):
             fichier_text = localisation_name[i] + ".txt"
             fichier_image = "map_image/" + localisation_name[i] + ".png"
             name = localisation_name[i]
+
+            if not name[0] == 'r':
+                temp_trainer_list = []
+            else:
+                temp_trainer_list = trainers_list[localisation_name[i]]
+
             # if the localisation is a city, there is no pokemon
-            if name[0] == 'v':
+            if name[0] == 'v' or name[0] == 'l' or name[0] == 'm':
                 temp_pokemon_list = []
             else:
                 temp_pokemon_list = pokemon_list[localisation_name[i]]
@@ -144,7 +223,7 @@ class Game:
             try:
                 self.maps[localisation_name[i]] = GameMap(localisation_size[i][0], localisation_size[i][1],
                                                           fichier_image,
-                                                          fichier_text, temp_pokemon_list, localisation_name[i], self)
+                                                          fichier_text, temp_pokemon_list, localisation_name[i], self, temp_trainer_list)
                 self.maps[localisation_name[i]].load_map_array()
             except FileNotFoundError:
                 print(fichier_image)
@@ -153,6 +232,7 @@ class Game:
     def update(self) -> None:
 
         self.handle_event()
+
         if self.current_state == config.GAME_STATE_EXPLORATION:
             for map_objects in self.current_localisation.map.map_objects:
                 map_objects.update()
@@ -209,8 +289,8 @@ class Game:
 
             if event.type == pygame.QUIT:
                 config.MAIN_LOOP_DOWN = True
-            if event.type == pygame.KEYDOWN:
 
+            if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_n and self.player.current_mode == config.PLAYER_MODE_WALK:
                     self.player.next_mode = config.PLAYER_MODE_RUN
 
@@ -240,7 +320,9 @@ class Game:
 
     def load_next_localisation(self):
         inverse_option = warp.find_opposite(self.option)
+        print(warp.find_opposite(self.option))
         new_player_coordinate = self.next_localisation.warp[inverse_option]
+        self.player_save.append(new_player_coordinate)
         self.player.change_current_tile(new_player_coordinate)
         self.player.update_coordinates()
         self.next_localisation.map.map_objects.append(self.player)

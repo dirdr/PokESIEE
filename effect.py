@@ -21,7 +21,6 @@ class Effect:
         self.damage = damage
         self.counter_types: list[Type] = [TYPES[t] for t in counter]
 
-
 class Burn(Effect):
     def __init__(self):
         super.__init__(0, int(1 / 16), ["FIRE"])

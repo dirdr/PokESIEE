@@ -2,7 +2,7 @@ ccccccccccc
 ccccccccccc
 lllllllllll
 lllllllllll
-llllsccllll
-lllllccllll
+lllllcclsll
+lllslccllll
 lllllllllll
-cll22lllllc
+cllwwlllllc

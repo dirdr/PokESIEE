@@ -14,11 +14,11 @@ ALL_MOVES: dict[str: move.Move] = {}
 def loadmoves():
     global ALL_MOVES
 
-    for i in range(0, 121):
+    for i in range(0, 122):
         t = f.loc[i]
         test = open(os.path.join(scriptDIR, 'loadmoves.py'), 'a')
         # print(t[0])
-        ALL_MOVES[f"{t[0]}"] = move.Move(f"{t[1]}", f"{t[2]}", f"{t[3]}", f"{t[4]}", {int(t[5])}, {int(t[6])}, {t[7]}, {t[8]})
+        ALL_MOVES[f"{t[0]}"] = move.Move(f"{t[1]}", f"{t[2]}", f"{t[3]}", f"{t[4]}", int(t[5]), int(t[6]), float(t[7]), float(t[8]))
 
         test.close()
 
@@ -27,8 +27,11 @@ def loadmoves():
 # # print(ALL_MOVES)
 # print(ALL_MOVES["griffe"])
 
-
 def get_Move(name: str) -> move.Move:
     global ALL_MOVES
     return ALL_MOVES[name]
+
+
+
+
 

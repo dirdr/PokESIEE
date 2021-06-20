@@ -10,6 +10,7 @@ from ability import move, loadmoves
 from element import TYPES, Type
 from entity import Entity
 from utils import get_args
+import random
 
 poke_dos = Entity(2976, 2016, 'spritesheet/poke_dos.png')
 poke_face = Entity(2976, 2016, 'spritesheet/poke_face.png')
@@ -73,19 +74,29 @@ class Pokemon(Entity):
         self.base_health: int = get_args(data, "base_health", id)
         self.health: int = int((2 * self.base_health * self.level) / 100 + self.level + 10)
         self.health_max: int = self.health
-        self.attack: int = get_args(data, "stats", id)["attack"]
-        self.defense: int = get_args(data, "stats", id)["defense"]
-        self.attack_spe: int = get_args(data, "stats", id)["attack_spe"]
-        self.defense_spe: int = get_args(data, "stats", id)["defense_spe"]
-        self.speed: int = get_args(data, "stats", id)["speed"]
-        #self.all_moves: Dict[move.Move: int] = get_moves(get_args(data, "ability", id))
-        self.moves: List[move.Move] = []
-        self.front_image = spritesheet.pick_image(poke_face.image, (((id - 1) % 31) * 96), int(id / 31) * 96,
+
+        self.base_attack: int = get_args(data, "stats", id)["attack"]
+        self.base_defense: int = get_args(data, "stats", id)["defense"]
+        self.base_attack_spe: int = get_args(data, "stats", id)["attack_spe"]
+        self.base_defense_spe: int = get_args(data, "stats", id)["defense_spe"]
+        self.base_speed: int = get_args(data, "stats", id)["speed"]
+
+        self.attack = self.base_attack
+        self.defense = self.base_defense
+        self.attack_spe = self.base_attack_spe
+        self.defense_spe = self.base_defense_spe
+        self.speed = self.base_speed
+
+        self.all_moves: Dict[move.Move: int] = get_moves(get_args(data, "ability", id))
+        self.moves = []
+        self.front_image = spritesheet.pick_image(poke_face.image, (((id - 1) % 31) * 96), int((id -1) / 31) * 96,
                                                   self.width, self.height)
-        self.back_image = spritesheet.pick_image(poke_dos.image, (((id - 1) % 31) * 96), int(id / 31) * 96, self.width,
+        self.back_image = spritesheet.pick_image(poke_dos.image, (((id - 1) % 31) * 96), int((id -1) / 31) * 96, self.width,
                                                  self.height)
         self.evolution: List[Optional[int]] = get_args(data, "evolution", id)
         self.status: Optional[Effect] = None
+        self.calc_health_max()
+        self.calc_good_stat_per_level()
 
     # methode pour les calcul d'evolution etc
     def calc_exp_max(self) -> None:  # calcul de l'exp max (formule de progression moyenne choisie)
@@ -96,14 +107,21 @@ class Pokemon(Entity):
         self.health_max = (2 * self.base_health * self.level) / 100 + self.level + 10
         self.health = self.health_max
 
-    # test si le pokemon possede une evolution
+    def calc_good_stat_per_level(self) -> None:
+        self.attack = (2 * self.base_attack * self.level) / 100 + self.level + 5
+        self.attack_spe = (2 * self.base_attack_spe * self.level) / 100 + self.level + 5
+        self.defense = (2 * self.base_defense * self.level) / 100 + self.level + 5
+        self.defense_spe = (2 * self.base_defense_spe * self.level) / 100 + self.level + 5
+        self.speed = (2 * self.base_speed * self.level) / 100 + self.level + 5
+
+    # test si le pokemon possède une evolution
     def has_evolve(self) -> bool:
         if len(self.evolution) == 0:
             return False
         else:
             return True
 
-    def get_name(self):
+    def get_name(self) -> str:
         return self.name
 
     # test si le pokemon peut evoluer
@@ -123,6 +141,15 @@ class Pokemon(Entity):
     def can_up(self) -> bool:
         return self.exp >= self.exp_max
 
+    def get_move_index(self, index: int) -> move.Move:
+        return self.moves[index]
+
+    def get_move_with_name(self, name: str) -> move.Move:
+        for vMove in self.moves:
+            if vMove is not None:
+                if vMove.name == name:
+                    return vMove
+
     # augmente le niv d'un pokemon
     def level_up(self) -> None:
         if self.can_up():
@@ -130,11 +157,11 @@ class Pokemon(Entity):
             self.exp = self.exp - self.exp_max
             self.calc_exp_max()
             self.calc_health_max()
+            self.calc_good_stat_per_level()
 
     # ajoute l'exp à un pokemon s'i ln'est pas mort et que le pokemon en param est bien KO
     def add_exp(self, ennemies: Optional['Pokemon']) -> None:
-        if ennemies.health == 0 and self.health > 0:
-            self.exp += ennemies.exp_points * (ennemies.level / 7)
+        self.exp += ennemies.exp_points * (int(ennemies.level) / 7)
 
     # automatisation fin de combat pour un pokemon si manque de temps
     def auto_fight_end(self, ennemies: Optional['Pokemon']):
@@ -150,19 +177,66 @@ class Pokemon(Entity):
         self.defense = poke.defense
         self.defense_spe = poke.defense_spe
         self.speed = poke.speed
+        self.health = self.health_max
 
-    def can_learn(self, ability: move.Move) -> bool:
+    def can_learn(self, move_name: str) -> bool:
+        vMove: move.Move = loadmoves.get_Move(move_name)
+        if vMove not in self.all_moves:
+            return False
+        else:
+            return int(self.level) >= self.all_moves[vMove]
+
+    def can_learn_move(self, ability: move.Move) -> bool:
         if ability not in self.all_moves:
             return False
         else:
-            return self.level >= self.all_moves[ability]
+            return int(self.level) >= self.all_moves[ability]
 
-    def learn(self, ability: move.Move):
-        self.moves.append(ability)
+    def learn(self, move_name: str):
+        if self.can_learn(move_name):
+            self.moves.append(loadmoves.get_Move(move_name))
+            del self.all_moves[loadmoves.get_Move(move_name)]
 
-    # supprime normalement la capcités des deux listes (à vérifier)
-    def forget(self, ability: move.Move):
-        self.moves.remove(self.all_moves.pop(ability))
+    def learn_move(self, move: move.Move):
+        if self.can_learn_move(move):
+            self.moves.append(move)
+            del self.all_moves[move]
+
+    # retourne un boolean True si la ocmpétence à été supprimé sinon False
+    def forget(self, index) -> bool:
+        if self.moves[index] is None:
+            return False
+        else:
+            del self.moves[index]
+            return True
+
+    def auto_learn(self):
+        learnable = []
+        for k in self.all_moves:
+            if self.can_learn_move(k):
+                learnable.append(k)
+        if len(learnable) < 4:
+            for i in range(0, len(learnable)):
+                self.learn_move(learnable[i])
+        else:
+            while len(self.moves) < 4:
+                number = random.randint(0, len(learnable) - 1)
+                self.learn_move((learnable[number]))
+                del learnable[number]
+
+    def apply_damage(self, damage):
+        self.health -= damage
+        if self.health < 0:
+            self.health = 0
+
+    def is_fainted(self) -> bool:
+        return self.health == 0
+
+    @staticmethod
+    def auto_learn_all():
+        for i in range(0, len(ID_LIST)):
+            poke_id: int = ID_LIST[i]
+            POKEMONS[poke_id].auto_learn()
 
     @staticmethod
     def load_pokemons():
@@ -171,7 +245,6 @@ class Pokemon(Entity):
             poke_id: int = ID_LIST[i]
             # print([(((poke_id-1) % 31)* 96), int(poke_id / 31) * 96 , poke_id])
             id_str = to_3_digit(poke_id)
-            print(id_str)
             try:
                 with open(os.path.join(config.scriptDIR, f"pokemon/{id_str}.json"), "r", encoding='utf-8') as file:
                     data = json.load(file)
@@ -182,7 +255,6 @@ class Pokemon(Entity):
         # while POKEMONS[-1] is None:
         #      del POKEMONS[-1]
         NB_POKEMON = len(POKEMONS) - 1
-        print(POKEMONS)
 
 
 IMAGE = pygame.image.load(os.path.join(config.spritesheet, "effects.png"))

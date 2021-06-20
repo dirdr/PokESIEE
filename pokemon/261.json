@@ -14,7 +14,7 @@
     "speed": 35
   },
   "name": "Medhyena",
-  "level": 1,
+  "level": 3,
   "base_health": 35,
 
   "type": ["DARK"],

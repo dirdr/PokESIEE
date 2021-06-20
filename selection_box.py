@@ -4,7 +4,7 @@ import config
 
 class SelectionBox:
 
-    def __init__(self, width: int, x: int, options: list[str, str, str, str], number_of_option: int) -> None:
+    def __init__(self, width: int, x: int, options: list[str, str, str, str], number_of_option: int, font_size: int) -> None:
         # Option Box
         self.width = width
         self.coordinate = (x, 230)
@@ -12,9 +12,12 @@ class SelectionBox:
         self.option_box = pygame.transform.scale(
             pygame.image.load(os.path.join(config.image, "misc_sprite/option_box.png")), (self.width, 84))
         pygame.font.init()
+        self.user_have_pressed = False
         self.user_have_choose = False
+        self.timer = False
+        self.size = font_size
         # Font
-        self.font = pygame.font.Font(os.path.join(config.font, "game_font.ttf"), 14)
+        self.font = pygame.font.Font(os.path.join(config.font, "game_font.ttf"), self.size)
 
         # Arrow Image
 
@@ -48,9 +51,6 @@ class SelectionBox:
 
         self.cursor_index = 0
 
-        print(self.option_coordinates[0])
-        print(self.possible_cursor_option[0])
-
     def listen_key(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT] and (self.cursor_index == 1 or self.cursor_index == 3):
@@ -63,12 +63,12 @@ class SelectionBox:
             self.cursor_index += 1
         elif keys[pygame.K_RETURN]:
             self.user_have_choose = True
+            self.timer = 0
 
-    def find_user_input(self) -> str:
-        return self.options[self.cursor_index]
+    def find_user_input(self) -> int:
+        return self.cursor_index
 
     def draw(self, surface):
-        self.listen_key()
         surface.blit(self.option_box, self.coordinate)
         for i in range(0, self.number_of_option):
             temp_zone_render = self.font.render(self.options[i], False, (0, 0, 0))
@@ -77,3 +77,6 @@ class SelectionBox:
 
     def update(self):
         self.listen_key()
+        self.timer += 1
+
+

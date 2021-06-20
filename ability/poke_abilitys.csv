@@ -120,3 +120,4 @@ vent_glace;Vent glace ;ICE;SPECIAL;Un vent du nord tellment froid qu'il fait bai
 croc_givre;Croc givre;ICE;PHYSICAL;Le lanceur utilise une morsure glaciale. 15% de chance de geler.;15;65;0.95;0
 roc_boulet;Roc boulet ;ROCK;PHYSICAL;Le lanceur attaque en projetant un gros rocher sur l'ennemi.;5;120;0.7;0
 acrobatie;Acrobatie;FLYING;PHYSICAL;Le lanceur virevolt dans les airs en frappant l'ennemie. Si celui si a une vitesse plus grande que l'ennemie les degats sont doubles.;20;65;1;0
+hydro_queue;Hydro queue;WATER;PHYSICAL;Le lanceur attaque en balançant sa queue comme une lame de fond en pleine tempête.;16;90;0.9;0

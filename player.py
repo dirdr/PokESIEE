@@ -23,7 +23,7 @@ class Player(Entity):
         self.area = area
         self.game_map = self.game.current_localisation.map
         self.current_tile_x = 20
-        self.current_tile_y = 15
+        self.current_tile_y = 10
         # player logical position
         self.x_logical_decor = self.current_tile_x * config.TILE_SIZE_SCALED
         self.y_logical_decor = self.current_tile_y * config.TILE_SIZE_SCALED + config.PLAYER_OFFSET_FOOT
@@ -57,6 +57,7 @@ class Player(Entity):
         self.current_mode = config.PLAYER_MODE_WALK
         self.next_mode = config.PLAYER_MODE_WALK
         self.request_move_frame = True
+        self.can_move = True
 
     # initialize all the move variables
 
@@ -83,9 +84,12 @@ class Player(Entity):
         self.dest_y = 0
 
     def update(self) -> None:
-        self.update_control(config.dt)
-        self.update_movement(config.dt)
-        self.update_coordinates()
+        if self.can_move:
+            self.update_control(config.dt)
+            self.update_movement(config.dt)
+            self.update_coordinates()
+            self.check_sign_pnj()
+            self.check_trainer_battle()
 
     def update_control(self, dt: float) -> None:
 
@@ -164,6 +168,19 @@ class Player(Entity):
         else:
             return False
 
+    def check_sign_pnj(self):
+        if self.game_map.map_grid[self.current_tile_y][self.current_tile_x] == 's' and not self.game.next_state == config.GAME_STATE_BATTLE:
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_RETURN]:
+                self.game_map.handle_sign_pnj()
+
+    def check_trainer_battle(self):
+        if self.game_map.map_grid[self.current_tile_y][self.current_tile_x] == 'p' and not self.game.next_state == config.GAME_STATE_BATTLE:
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_RETURN]:
+                print("je lance le combat")
+                self.game_map.handle_trainer_battle()
+
     def can_go_next_tile(self, mov_dir: direction.Direction) -> bool:
         tile_to_look_x = self.current_tile_x + mov_dir.dx
         tile_to_look_y = self.current_tile_y + 1 + mov_dir.dy
@@ -195,6 +212,34 @@ class Player(Entity):
             self.game.change_next_localisation()
             self.game_map.map_objects.remove(self)
             self.game.load_next_localisation()
+            return False
+        elif self.game_map.map_grid[tile_to_look_y][tile_to_look_x] == 'w':
+            self.game.option = 'Up'
+            self.game.change_next_localisation()
+            self.game_map.map_objects.remove(self)
+            self.game.load_next_localisation()
+            return False
+        elif self.game_map.map_grid[tile_to_look_y][tile_to_look_x] == 'k':
+            self.game.option = 'Down'
+            self.game.change_next_localisation()
+            self.game_map.map_objects.remove(self)
+            self.game.load_next_localisation()
+            return False
+        elif self.game_map.map_grid[tile_to_look_y][tile_to_look_x] == '1':
+            self.game.option = 'Up1'
+            self.game.change_next_localisation()
+            self.game_map.map_objects.remove(self)
+            self.game.load_next_localisation()
+            return False
+        elif self.game_map.map_grid[tile_to_look_y][tile_to_look_x] == '2':
+            self.game.option = 'Down1'
+            self.game.change_next_localisation()
+            self.game_map.map_objects.remove(self)
+            self.game.load_next_localisation()
+            return False
+        elif self.game_map.map_grid[tile_to_look_y][tile_to_look_x] == 'p':
+            return False
+        elif self.game_map.map_grid[tile_to_look_y][tile_to_look_x] == 's':
             return False
         else:
             return True

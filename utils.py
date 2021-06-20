@@ -14,6 +14,7 @@ class PokemonParseError(Exception):
         else:
             return "PokemonParseError has been raised"
 
+
 def get_args(data: Dict[str, Any], key: str, _id: Any, default=None, type_check=None, _type="pokemon")-> Any:
     value = None
     if default is not None:

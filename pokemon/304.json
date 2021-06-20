@@ -1,7 +1,7 @@
 {
   "ability": {
     "charge": 1,
-    "armure": 1,
+    "boule_armure": 1,
     "griffe_acier": 1,
     "eboulement": 16
 

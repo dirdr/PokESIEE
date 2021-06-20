@@ -5,6 +5,7 @@ import os
 # this class contains many useful animation for battle etc
 from pygame.surface import SurfaceType, Surface
 
+import battle_hud
 import config
 import pokemon
 import spritesheet
@@ -36,12 +37,6 @@ class ScreenFadeIn(ScreenAnimation):
             self.isFinished = True
 
 
-class PlayerChooseAttack(ScreenAnimation):
-
-    def __init__(self, poke: pokemon.Pokemon):
-        super(PlayerChooseAttack, self).__init__()
-        attack = poke.moves
-        print(attack)
 
 
 class ScreenFadeOut(ScreenAnimation):
@@ -231,6 +226,11 @@ class ListenableTextDisplay(ScreenAnimation):
         self.arrow_animation_x = self.arrow_x_coordinate
         self.arrow_animation_y = self.arrow_y_coordinate
         self.user_input = False
+        self.timer = 0
+        self.live_timer = 0
+
+    def set_font_size(self, size: int) -> None:
+        self.text_box.font = pygame.font.Font(os.path.join(config.font, "game_font.ttf"), size)
 
     def update(self, surface):
         self.text_box.draw(surface)
@@ -239,13 +239,70 @@ class ListenableTextDisplay(ScreenAnimation):
         if self.arrow_animation_y - self.arrow_y_coordinate > 5:
             self.arrow_animation_y = self.arrow_y_coordinate
         self.listen_key()
-        if self.user_input:
+        self.timer += 1
+        self.live_timer += 0.1
+        if self.user_input and self.timer > 20 and self.live_timer > 5:
             self.isFinished = True
 
     def listen_key(self):
         keys_pressed = pygame.key.get_pressed()
-        if keys_pressed[pygame.K_n]:
+        if keys_pressed[pygame.K_RETURN]:
             self.user_input = True
+            self.timer = 0
+
+
+class PlayerPokemonFaint(ScreenAnimation):
+
+    def __init__(self, poke: pokemon.Pokemon):
+        super(PlayerPokemonFaint, self).__init__()
+        self.pokemon_to_draw = poke
+        self.need_to_show_pokemon = True
+        self.pokemon_sprite = poke.back_image
+        self.speed = 8
+        self.y = 135
+        self.final_position_y = 0 - self.pokemon_sprite.get_height()
+
+    def update(self, surface):
+        if self.y >= self.final_position_y:
+            surface.blit(self.pokemon_sprite, 60, self.y)
+            self.y -= self.speed
+        else:
+            self.isFinished = True
+
+
+class OpponentPokemonFaint(ScreenAnimation):
+    def __init__(self, poke: pokemon.Pokemon):
+        super(OpponentPokemonFaint, self).__init__()
+        self.pokemon_to_draw = poke
+        self.need_to_show_pokemon = True
+        self.pokemon_sprite = poke.front_image
+        self.speed = 8
+        self.y = 40
+        self.final_position_y = self.y - self.pokemon_sprite.get_height()
+
+    def update(self, surface):
+        if self.y >= self.final_position_y:
+            surface.blit(self.pokemon_sprite, (325, self.y))
+            self.y += self.speed
+        else:
+            self.isFinished = True
+
+
+class HpBarDrop(ScreenAnimation):
+
+    def __init__(self, hp_before_damage: int, hp_after_damage: int, battle_hud: battle_hud.BattleHud):
+        super(HpBarDrop, self).__init__()
+        self.hud = battle_hud
+        self.bar_width = hp_after_damage
+        self.hp_before = hp_before_damage
+        self.hp_after = hp_after_damage
+        self.hud.need_to_draw_player_hp_bar = False
+        self.hud.need_to_draw_opponent_hp_bar = False
+        self.speed = 2
+        self.coordinate = (int, int)
+
+    def update(self, surface):
+        pass
 
 
 class ScreenAnimationManager:

@@ -4,6 +4,7 @@ sys.path.append('.')
 from element import TYPES, Type
 from typing import List
 
+
 SPECIAL = "SPECIAL"
 STATUS = "STATUS"
 PHYSICAL = "PHYSICAL"
@@ -41,5 +42,10 @@ class Move:
         self.accuracy: float = accuracy
         self.self_dmg: float = self_dmg
 
-    def use(self):
-        pass
+    def use(self, battle_mech, user, target):
+        hp_before_move = target.health
+        damage = battle_mech.calculate_damage(self, user, target)
+        target.apply_damage(damage)
+
+    def get_accuracy(self):
+        return self.accuracy
